@@ -1,0 +1,79 @@
+/** Normalized crop region — coordinates are 0-1 relative to page dimensions */
+export interface CropRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+}
+
+/** Note style for the solving space */
+export type NoteStyle = 'blank' | 'lined' | 'dotted' | 'grid';
+
+/** A single selected question */
+export interface Question {
+  id: string;
+  sourcePdfName: string;
+  pageNumber: number; // 0-indexed
+  questionCrop: CropRegion;
+  answerCrop?: CropRegion;
+  label: string; // "Q1", "Q2", etc.
+  rotation: number;
+  includedInExport: boolean;
+  noteStyle: NoteStyle;
+  tags: string[];
+  createdAt: number;
+  thumbnail?: string; // data URL for sidebar preview
+}
+
+/** Built-in theme names */
+export type ThemeName = 'minimal' | 'blueprint' | 'dark-academia' | 'pastel' | 'exam-style';
+
+/** Export type variants */
+export type ExportType = 'practice' | 'answer-key' | 'combined';
+
+/** Full export configuration */
+export interface ExportSettings {
+  exportType: ExportType;
+  questionsPerPage: 1 | 2 | 3;
+  noteStyle: NoteStyle;
+  theme: ThemeName;
+  margins: { top: number; right: number; bottom: number; left: number };
+  spacing: number;
+  lineSpacing: number;
+  includeAnswers: boolean;
+  noteStyleOpacity: number;
+  gridSize: number;
+  dotDensity: number;
+}
+
+/** Theme color palette */
+export interface ThemeColors {
+  name: ThemeName;
+  label: string;
+  background: string;
+  surface: string;
+  border: string;
+  headerText: string;
+  bodyText: string;
+  accent: string;
+  lineColor: string;
+  questionBg: string;
+}
+
+/** App interaction mode */
+export type InteractionMode = 'view' | 'select' | 'answer-select';
+
+/** Selection state machine */
+export type SelectionState = 'idle' | 'drawing' | 'adjusting' | 'confirmed';
+
+/** UI active panel */
+export type ActivePanel = 'questions' | 'export' | null;
+
+/** Page info for the virtual scroller */
+export interface PageInfo {
+  index: number;
+  width: number;
+  height: number;
+  top: number; // cumulative top offset
+}
