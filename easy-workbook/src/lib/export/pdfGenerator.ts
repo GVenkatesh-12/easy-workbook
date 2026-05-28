@@ -103,7 +103,9 @@ export async function generatePdf(
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const theme = getTheme(settings.theme);
 
-  const bgColor = hexToRgb(theme.background);
+  const bgColor = settings.customPageColor && settings.customPageColor.startsWith('#')
+    ? hexToRgb(settings.customPageColor)
+    : hexToRgb(theme.background);
   const headerColor = hexToRgb(theme.headerText);
   const borderColor = hexToRgb(theme.border);
   const accentColor = hexToRgb(theme.accent);
@@ -134,7 +136,7 @@ export async function generatePdf(
     });
 
     // Header
-    page.drawText("Easy Workbook", {
+    page.drawText(settings.pdfTitle || "Easy Workbook", {
       x: margins.left,
       y: A4_HEIGHT - 30,
       size: 8,
@@ -157,6 +159,20 @@ export async function generatePdf(
     const contentTop = A4_HEIGHT - margins.top - 20;
     const contentBottom = margins.bottom;
     const contentHeight = contentTop - contentBottom;
+
+    // Draw full-page note pattern if practice/combined
+    if (
+      settings.exportType === "practice" ||
+      settings.exportType === "combined"
+    ) {
+      drawNotePattern(
+        page,
+        settings,
+        A4_HEIGHT, // Start from the very top
+        0,         // Go to the very bottom
+        theme,
+      );
+    }
 
     // Calculate total space weight for the page
     const totalWeight = pageQuestions.reduce((sum, q) => sum + (q.spaceWeight ?? 1), 0);
@@ -242,13 +258,12 @@ export async function generatePdf(
         height: imgHeight,
       });
 
-      // Solving space with note pattern
+      // Solving space separator line
       if (
         settings.exportType === "practice" ||
         settings.exportType === "combined"
       ) {
         const solveTop = blockTop - imgHeight - spacing;
-        const solveBottom = blockTop - questionBlockHeight;
 
         // Separator line
         page.drawLine({
@@ -258,15 +273,6 @@ export async function generatePdf(
           color: borderColor,
           opacity: 0.3,
         });
-
-        // Note pattern in solving area
-        drawNotePattern(
-          page,
-          settings,
-          solveTop - 5,
-          Math.max(solveBottom, contentBottom),
-          theme,
-        );
       }
 
       // Answer (if included)

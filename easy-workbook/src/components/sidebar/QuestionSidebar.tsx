@@ -58,7 +58,7 @@ export function QuestionSidebar() {
           className="h-full min-h-0 border-l border-surface-700/50 bg-surface-900 flex shrink-0 flex-col overflow-hidden"
         >
           {/* Header */}
-          <div className="shrink-0 border-b border-surface-700/50 px-5 py-4">
+          <div className="shrink-0 border-b border-surface-700/50 px-4 py-3">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-surface-100">
                 Questions
@@ -108,10 +108,10 @@ export function QuestionSidebar() {
 
           {/* Footer actions */}
           {questions.length > 0 && (
-            <div className="shrink-0 border-t border-surface-700/50 px-5 py-4">
+            <div className="shrink-0 border-t border-surface-700/50 px-4 py-3">
               <button
                 onClick={() => openModal('export')}
-                className="w-full py-3 px-5 rounded-xl bg-brand-500 hover:bg-brand-600
+                className="w-full py-2.5 px-4 rounded-lg bg-brand-500 hover:bg-brand-600
                   text-white text-sm font-semibold transition-all duration-200
                   active:scale-[0.98] flex items-center justify-center gap-2
                   shadow-lg shadow-brand-500/20"
@@ -169,7 +169,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
       ref={setNodeRef}
       style={style}
       className={`
-        group rounded-xl border transition-all duration-150
+        group rounded-lg border transition-all duration-150
         ${question.includedInExport
           ? 'bg-surface-800/60 border-surface-700 hover:border-surface-600 shadow-sm'
           : 'bg-surface-800/30 border-surface-800 opacity-60'
@@ -177,20 +177,20 @@ function SortableQuestionCard({ question }: { question: Question }) {
       `}
     >
       {/* Main content row */}
-      <div className="flex items-start gap-3 p-4">
+      <div className="flex items-start gap-2.5 p-3">
         {/* Drag handle */}
         <button
           {...attributes}
           {...listeners}
-          className="mt-1 w-7 h-7 flex items-center justify-center text-surface-500 hover:text-surface-300 cursor-grab active:cursor-grabbing shrink-0 rounded-lg hover:bg-surface-700/50 transition-colors"
+          className="mt-0.5 w-6 h-6 flex items-center justify-center text-surface-500 hover:text-surface-300 cursor-grab active:cursor-grabbing shrink-0 rounded-lg hover:bg-surface-700/50 transition-colors"
         >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm-8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm-8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z" />
           </svg>
         </button>
 
         {/* Thumbnail */}
-        <div className="w-20 h-14 rounded-lg bg-surface-700 overflow-hidden shrink-0 border border-surface-600/50 shadow-inner">
+        <div className="w-16 h-12 rounded-md bg-surface-700 overflow-hidden shrink-0 border border-surface-600/50 shadow-inner">
           {question.thumbnail ? (
             <img
               src={question.thumbnail}
@@ -207,10 +207,10 @@ function SortableQuestionCard({ question }: { question: Question }) {
         {/* Info */}
         <div className="flex-1 min-w-0 py-0.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-bold text-brand-400">
+            <span className="text-xs font-bold text-brand-400">
               {question.label}
             </span>
-            <span className="text-xs text-surface-500">
+            <span className="text-[11px] text-surface-500">
               p.{question.pageNumber + 1}
             </span>
             {question.answerCrop && (
@@ -226,12 +226,12 @@ function SortableQuestionCard({ question }: { question: Question }) {
       </div>
 
       {/* Action bar — always visible for touch, hover-reveal on desktop */}
-      <div className="flex items-center gap-1.5 border-t border-surface-700/40 px-3 py-2.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 bg-surface-900/30 rounded-b-xl">
+      <div className="flex items-center gap-1.5 border-t border-surface-700/40 px-2.5 py-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 bg-surface-900/30 rounded-b-lg">
         {/* Add / Remove Answer */}
         {question.answerCrop ? (
           <button
             onClick={handleRemoveAnswer}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10 transition-colors"
             title="Remove answer region"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -242,7 +242,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
         ) : (
           <button
             onClick={handleAddAnswer}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-surface-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-surface-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
             title="Add answer region"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -258,7 +258,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
         {/* Include/Exclude */}
         <button
           onClick={() => toggleInclude(question.id)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-surface-400 hover:text-surface-200 hover:bg-surface-700 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-400 hover:text-surface-200 hover:bg-surface-700 transition-colors"
           title={question.includedInExport ? 'Exclude from export' : 'Include in export'}
         >
           {question.includedInExport ? (
@@ -275,7 +275,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
         {/* Duplicate */}
         <button
           onClick={() => duplicateQuestion(question.id)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-surface-400 hover:text-surface-200 hover:bg-surface-700 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-400 hover:text-surface-200 hover:bg-surface-700 transition-colors"
           title="Duplicate"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -286,7 +286,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
         {/* Delete */}
         <button
           onClick={() => removeQuestion(question.id)}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           title="Remove"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

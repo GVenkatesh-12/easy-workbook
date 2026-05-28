@@ -49,6 +49,8 @@ export interface ExportSettings {
   questionImageScale: number; // 0.1 to 1.0 scaling factor for question images
   answerImageScale: number; // 0.1 to 1.0 scaling factor for answer images
   answerPosition: 'left' | 'center' | 'right'; // Horizontal alignment of answers
+  pdfTitle: string; // Custom title for the PDF header
+  customPageColor: string; // Hex color for custom background, or empty string to use theme
 }
 
 /** Theme color palette */

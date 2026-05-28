@@ -21,6 +21,8 @@ interface ExportState extends ExportSettings {
   setAnswerImageScale: (scale: number) => void;
   setAnswerPosition: (position: 'left' | 'center' | 'right') => void;
   setPreviewMode: (preview: boolean) => void;
+  setPdfTitle: (title: string) => void;
+  setCustomPageColor: (color: string) => void;
   resetDefaults: () => void;
   getSettings: () => ExportSettings;
 }
@@ -40,6 +42,8 @@ const DEFAULT_SETTINGS: ExportSettings = {
   questionImageScale: 1.0,
   answerImageScale: 1.0,
   answerPosition: 'left',
+  pdfTitle: 'Easy Workbook',
+  customPageColor: '',
 };
 
 export const useExportStore = create<ExportState>((set, get) => ({
@@ -62,6 +66,8 @@ export const useExportStore = create<ExportState>((set, get) => ({
   setQuestionImageScale: (questionImageScale) => set({ questionImageScale }),
   setAnswerImageScale: (answerImageScale) => set({ answerImageScale }),
   setAnswerPosition: (answerPosition) => set({ answerPosition }),
+  setPdfTitle: (pdfTitle) => set({ pdfTitle }),
+  setCustomPageColor: (customPageColor) => set({ customPageColor }),
   setPreviewMode: (previewMode) => set({ previewMode }),
   
   resetDefaults: () => set({ ...DEFAULT_SETTINGS }),
@@ -83,6 +89,8 @@ export const useExportStore = create<ExportState>((set, get) => ({
       questionImageScale: state.questionImageScale,
       answerImageScale: state.answerImageScale,
       answerPosition: state.answerPosition,
+      pdfTitle: state.pdfTitle,
+      customPageColor: state.customPageColor,
     };
   },
 }));

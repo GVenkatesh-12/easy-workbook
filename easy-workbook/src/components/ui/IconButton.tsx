@@ -9,9 +9,9 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'w-10 h-10 text-sm rounded-xl',
-  md: 'w-12 h-12 text-base rounded-xl',
-  lg: 'w-14 h-14 text-lg rounded-2xl',
+  sm: 'w-8 h-8 text-xs rounded-lg',
+  md: 'w-9 h-9 text-sm rounded-lg',
+  lg: 'w-10 h-10 text-base rounded-lg',
 };
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(

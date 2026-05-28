@@ -18,7 +18,10 @@ export function ExportPreview() {
   const includeAnswers = useExportStore((s) => s.includeAnswers);
   const questionImageScale = useExportStore((s) => s.questionImageScale);
 
+  const customPageColor = useExportStore((s) => s.customPageColor);
+
   const theme = getTheme(themeName);
+  const bgColor = customPageColor || theme.background;
   const noteSvg = getNoteStyleSvg(noteStyle, { lineColor: theme.lineColor, opacity: 0.4 });
   const noteBg = noteSvg ? `url("data:image/svg+xml,${encodeURIComponent(noteSvg)}")` : 'none';
 
@@ -49,7 +52,9 @@ export function ExportPreview() {
                 className="relative w-full shadow-xl overflow-hidden"
                 style={{
                   aspectRatio: '1 / 1.414',
-                  backgroundColor: theme.background,
+                  backgroundColor: bgColor,
+                  backgroundImage: (exportType === 'practice' || exportType === 'combined') ? noteBg : 'none',
+                  backgroundPosition: 'top left',
                 }}
               >
                 <div className="absolute inset-0 flex flex-col p-4">
@@ -60,7 +65,6 @@ export function ExportPreview() {
                       isLast={qIdx === pageQuestions.length - 1}
                       exportType={exportType}
                       theme={theme}
-                      noteBg={noteBg}
                       includeAnswers={includeAnswers}
                       imageScale={questionImageScale}
                       onWeightChange={(delta) => {
@@ -108,7 +112,6 @@ function QuestionBlock({
   isLast,
   exportType,
   theme,
-  noteBg,
   includeAnswers,
   imageScale,
   onWeightChange,
@@ -117,7 +120,6 @@ function QuestionBlock({
   isLast: boolean;
   exportType: ExportType;
   theme: ReturnType<typeof getTheme>;
-  noteBg: string;
   includeAnswers: boolean;
   imageScale: number;
   onWeightChange: (delta: number) => void;
@@ -206,12 +208,9 @@ function QuestionBlock({
           )}
         </div>
 
-        {/* Solving Space / Note Pattern */}
+        {/* Solving Space (Transparent to show page background) */}
         {(exportType === 'practice' || exportType === 'combined') && (
-          <div 
-            className="flex-1 w-full mt-1 border-t border-black/5 opacity-50 relative min-h-0"
-            style={{ backgroundImage: noteBg }}
-          />
+          <div className="flex-1 w-full mt-1 border-t border-black/5 min-h-0" />
         )}
 
         {/* Optional Answer preview */}
