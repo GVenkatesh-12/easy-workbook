@@ -24,7 +24,8 @@ export async function generateHtmlPractice(
     const imageUrl = await extractCropAsDataUrl(q.pageNumber, q.questionCrop, 2);
     let answerUrl: string | undefined;
     if (q.answerCrop) {
-      answerUrl = await extractCropAsDataUrl(q.pageNumber, q.answerCrop, 2);
+      const ansPage = q.answerCrop.pageNumber ?? q.pageNumber;
+      answerUrl = await extractCropAsDataUrl(ansPage, q.answerCrop, 2);
     }
 
     questionData.push({

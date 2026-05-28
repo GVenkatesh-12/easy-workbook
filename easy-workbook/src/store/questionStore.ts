@@ -5,7 +5,6 @@ import type { Question, CropRegion } from "@/types";
 interface QuestionState {
   questions: Question[];
   activeQuestionId: string | null;
-  nextLabel: number; // counter for Q1, Q2, ...
 
   // Actions
   addQuestion: (params: {
@@ -23,42 +22,45 @@ interface QuestionState {
   setActiveQuestion: (id: string | null) => void;
   setAnswerCrop: (id: string, crop: CropRegion) => void;
   removeAnswerCrop: (id: string) => void;
+  setQuestionSpaceWeight: (id: string, weight: number) => void;
   clearAll: () => void;
   getIncludedQuestions: () => Question[];
 }
 
+const reindexLabels = (questions: Question[]): Question[] => {
+  return questions.map((q, idx) => ({ ...q, label: `Q${idx + 1}` }));
+};
+
 export const useQuestionStore = create<QuestionState>((set, get) => ({
   questions: [],
   activeQuestionId: null,
-  nextLabel: 1,
 
   addQuestion: (params) => {
     const id = uuidv4();
-    const label = `Q${get().nextLabel}`;
     const question: Question = {
       id,
       sourcePdfName: params.sourcePdfName,
       pageNumber: params.pageNumber,
       questionCrop: params.questionCrop,
       answerCrop: params.answerCrop,
-      label,
+      label: "", // Will be set by reindexLabels
       rotation: 0,
       includedInExport: true,
       noteStyle: "lined",
       tags: [],
       createdAt: Date.now(),
       thumbnail: params.thumbnail,
+      spaceWeight: 1, // Default weight
     };
     set((state) => ({
-      questions: [...state.questions, question],
-      nextLabel: state.nextLabel + 1,
+      questions: reindexLabels([...state.questions, question]),
     }));
     return id;
   },
 
   removeQuestion: (id) =>
     set((state) => ({
-      questions: state.questions.filter((q) => q.id !== id),
+      questions: reindexLabels(state.questions.filter((q) => q.id !== id)),
       activeQuestionId:
         state.activeQuestionId === id ? null : state.activeQuestionId,
     })),
@@ -74,18 +76,16 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
     const original = get().questions.find((q) => q.id === id);
     if (!original) return;
     const newId = uuidv4();
-    const label = `Q${get().nextLabel}`;
     const duplicate: Question = {
       ...original,
       id: newId,
-      label,
       createdAt: Date.now(),
     };
     set((state) => {
       const idx = state.questions.findIndex((q) => q.id === id);
       const newQuestions = [...state.questions];
       newQuestions.splice(idx + 1, 0, duplicate);
-      return { questions: newQuestions, nextLabel: state.nextLabel + 1 };
+      return { questions: reindexLabels(newQuestions) };
     });
   },
 
@@ -94,7 +94,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       const newQuestions = [...state.questions];
       const [moved] = newQuestions.splice(fromIndex, 1);
       newQuestions.splice(toIndex, 0, moved);
-      return { questions: newQuestions };
+      return { questions: reindexLabels(newQuestions) };
     }),
 
   toggleInclude: (id) =>
@@ -120,7 +120,14 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       ),
     })),
 
-  clearAll: () => set({ questions: [], activeQuestionId: null, nextLabel: 1 }),
+  setQuestionSpaceWeight: (id, weight) =>
+    set((state) => ({
+      questions: state.questions.map((q) =>
+        q.id === id ? { ...q, spaceWeight: weight } : q,
+      ),
+    })),
+
+  clearAll: () => set({ questions: [], activeQuestionId: null }),
 
   getIncludedQuestions: () => get().questions.filter((q) => q.includedInExport),
 }));

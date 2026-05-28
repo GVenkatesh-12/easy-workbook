@@ -8,8 +8,8 @@ import { useUiStore } from '@/store/uiStore';
 import { generatePdf, downloadPdf } from '@/lib/export/pdfGenerator';
 import { generateHtmlPractice, downloadHtml } from '@/lib/export/htmlGenerator';
 import { getAllThemes } from '@/lib/export/themes';
-import type { ExportType, NoteStyle, ThemeName } from '@/types';
 import { getNoteStyleSvg } from '@/lib/export/noteStyleRenderer';
+import { ExportPreview } from './ExportPreview';
 
 const NOTE_STYLES: { value: NoteStyle; label: string; icon: string }[] = [
   { value: 'blank', label: 'Blank', icon: '⬜' },
@@ -69,19 +69,22 @@ export function ExportDialog() {
   const isOpen = modalOpen === 'export';
 
   return (
-    <Modal open={isOpen} onClose={closeModal} title="Export Settings" maxWidth="max-w-4xl">
-      <div className="space-y-10 p-6 sm:space-y-12 sm:p-10">
-        {/* Format Selector */}
-        <div>
-          <label className="text-sm font-bold text-surface-300 uppercase tracking-widest mb-4 block">
+    <Modal open={isOpen} onClose={closeModal} title="Export Settings" maxWidth="max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 p-5 sm:p-7">
+        
+        {/* Left Column: Settings */}
+        <div className="space-y-7">
+          {/* Format Selector */}
+          <div>
+            <label className="text-xs font-bold text-surface-300 uppercase tracking-widest mb-3.5 block">
             Export Format
           </label>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(['pdf', 'html'] as const).map((fmt) => (
               <button
                 key={fmt}
                 onClick={() => setExportFormat(fmt)}
-                className={`py-5 px-6 rounded-2xl text-base font-semibold transition-all duration-200
+                className={`py-3.5 px-5 rounded-xl text-sm font-semibold transition-all duration-200
                   ${exportFormat === fmt
                     ? 'bg-brand-500/20 text-brand-400 border-2 border-brand-500/50 shadow-lg shadow-brand-500/10'
                     : 'bg-surface-800 text-surface-400 border-2 border-surface-700 hover:border-surface-600'
@@ -98,22 +101,22 @@ export function ExportDialog() {
           <>
             {/* Export Type */}
             <div>
-              <label className="text-sm font-bold text-surface-300 uppercase tracking-widest mb-4 block">
+              <label className="text-xs font-bold text-surface-300 uppercase tracking-widest mb-3.5 block">
                 Export Type
               </label>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {EXPORT_TYPES.map((type) => (
                   <button
                     key={type.value}
                     onClick={() => store.setExportType(type.value)}
-                    className={`p-6 rounded-2xl text-left transition-all duration-200
+                    className={`p-4 rounded-xl text-left transition-all duration-200
                       ${store.exportType === type.value
                         ? 'bg-brand-500/20 border-2 border-brand-500/50 shadow-lg shadow-brand-500/10'
                         : 'bg-surface-800 border-2 border-surface-700 hover:border-surface-600'
                       }`}
                   >
-                    <div className={`text-base font-bold ${store.exportType === type.value ? 'text-brand-400' : 'text-surface-200'}`}>{type.label}</div>
-                    <div className="text-sm text-surface-500 mt-2 leading-relaxed">{type.desc}</div>
+                    <div className={`text-sm font-bold ${store.exportType === type.value ? 'text-brand-400' : 'text-surface-200'}`}>{type.label}</div>
+                    <div className="text-xs text-surface-500 mt-1 leading-relaxed">{type.desc}</div>
                   </button>
                 ))}
               </div>
@@ -121,15 +124,15 @@ export function ExportDialog() {
 
             {/* Questions per page */}
             <div>
-              <label className="text-sm font-bold text-surface-300 uppercase tracking-widest mb-4 block">
+              <label className="text-xs font-bold text-surface-300 uppercase tracking-widest mb-3.5 block">
                 Questions per Page
               </label>
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 {([1, 2, 3] as const).map((n) => (
                   <button
                     key={n}
                     onClick={() => store.setQuestionsPerPage(n)}
-                    className={`flex-1 py-5 rounded-2xl text-lg font-bold transition-all duration-200
+                    className={`flex-1 py-3.5 rounded-xl text-base font-bold transition-all duration-200
                       ${store.questionsPerPage === n
                         ? 'bg-brand-500/20 text-brand-400 border-2 border-brand-500/50 shadow-lg shadow-brand-500/10'
                         : 'bg-surface-800 text-surface-400 border-2 border-surface-700 hover:border-surface-600'
@@ -141,12 +144,36 @@ export function ExportDialog() {
               </div>
             </div>
 
+            {/* Question Image Scale */}
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <label className="text-xs font-bold text-surface-300 uppercase tracking-widest block">
+                  Image Size
+                </label>
+                <span className="text-xs text-brand-400 font-mono font-bold">
+                  {Math.round(store.questionImageScale * 100)}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.1"
+                max="1.0"
+                step="0.05"
+                value={store.questionImageScale}
+                onChange={(e) => store.setQuestionImageScale(parseFloat(e.target.value))}
+                className="w-full accent-brand-500"
+              />
+              <p className="text-[11px] text-surface-500 mt-2">
+                Scale down the question image to make more room for solving.
+              </p>
+            </div>
+
             {/* Note Style */}
             <div>
-              <label className="text-sm font-bold text-surface-300 uppercase tracking-widest mb-4 block">
+              <label className="text-xs font-bold text-surface-300 uppercase tracking-widest mb-3.5 block">
                 Note Style
               </label>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {NOTE_STYLES.map((style) => {
                   const svg = getNoteStyleSvg(style.value, { lineColor: '#6366f1', opacity: 0.4 });
                   const bgImage = svg
@@ -157,7 +184,7 @@ export function ExportDialog() {
                     <button
                       key={style.value}
                       onClick={() => store.setNoteStyle(style.value)}
-                      className={`relative p-6 rounded-2xl text-center transition-all duration-200 overflow-hidden
+                      className={`relative p-4 rounded-xl text-center transition-all duration-200 overflow-hidden
                         ${store.noteStyle === style.value
                           ? 'border-2 border-brand-500 bg-brand-500/15 shadow-lg shadow-brand-500/10'
                           : 'border-2 border-surface-700 bg-surface-800 hover:border-surface-600'
@@ -169,8 +196,8 @@ export function ExportDialog() {
                         style={{ backgroundImage: bgImage }}
                       />
                       <div className="relative">
-                        <div className="text-3xl mb-3">{style.icon}</div>
-                        <div className={`text-sm font-bold ${store.noteStyle === style.value ? 'text-brand-400' : 'text-surface-300'}`}>{style.label}</div>
+                        <div className="text-2xl mb-2">{style.icon}</div>
+                        <div className={`text-xs font-bold ${store.noteStyle === style.value ? 'text-brand-400' : 'text-surface-300'}`}>{style.label}</div>
                       </div>
                     </button>
                   );
@@ -210,37 +237,37 @@ export function ExportDialog() {
 
             {/* Theme */}
             <div>
-              <label className="text-sm font-bold text-surface-300 uppercase tracking-widest mb-4 block">
+              <label className="text-xs font-bold text-surface-300 uppercase tracking-widest mb-3.5 block">
                 Color Theme
               </label>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                 {themes.map((theme) => (
                   <button
                     key={theme.name}
                     onClick={() => store.setTheme(theme.name as ThemeName)}
-                    className={`p-5 rounded-2xl text-center transition-all duration-200
+                    className={`p-4 rounded-xl text-center transition-all duration-200
                       ${store.theme === theme.name
                         ? 'ring-2 ring-brand-500 ring-offset-4 ring-offset-surface-900 bg-surface-800 shadow-xl'
                         : 'bg-surface-800 border-2 border-transparent hover:border-surface-700'
                       }`}
                   >
                     {/* Color preview dots */}
-                    <div className="flex justify-center gap-2 mb-3">
-                      <div className="w-5 h-5 rounded-full border border-surface-600" style={{ background: theme.background }} />
-                      <div className="w-5 h-5 rounded-full border border-surface-600" style={{ background: theme.accent }} />
-                      <div className="w-5 h-5 rounded-full border border-surface-600" style={{ background: theme.lineColor }} />
+                    <div className="flex justify-center gap-1.5 mb-2.5">
+                      <div className="w-4 h-4 rounded-full border border-surface-600" style={{ background: theme.background }} />
+                      <div className="w-4 h-4 rounded-full border border-surface-600" style={{ background: theme.accent }} />
+                      <div className="w-4 h-4 rounded-full border border-surface-600" style={{ background: theme.lineColor }} />
                     </div>
-                    <div className="text-sm font-bold text-surface-300">{theme.label}</div>
+                    <div className="text-xs font-bold text-surface-300">{theme.label}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Include Answers */}
-            <div className="flex items-center justify-between gap-6 p-6 bg-surface-800 rounded-2xl border-2 border-surface-700">
+            <div className="flex items-center justify-between gap-4 p-5 bg-surface-800 rounded-xl border-2 border-surface-700">
               <div className="min-w-0">
-                <div className="text-base font-bold text-surface-200">Include Answers</div>
-                <div className="text-sm text-surface-500 mt-1">
+                <div className="text-sm font-bold text-surface-200">Include Answers</div>
+                <div className="text-xs text-surface-500 mt-0.5">
                   Show answer regions in the exported PDF
                 </div>
               </div>
@@ -275,25 +302,32 @@ export function ExportDialog() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_2fr]">
-            <Button variant="ghost" size="lg" onClick={closeModal} className="flex-1">
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleExport}
-              loading={isExporting}
-              disabled={includedQuestions.length === 0}
-              className="w-full text-lg"
-            >
-              {isExporting
-                ? 'Generating...'
-                : `Export ${exportFormat.toUpperCase()}`
-              }
-            </Button>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_2fr]">
+              <Button variant="ghost" onClick={closeModal} className="flex-1">
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleExport}
+                loading={isExporting}
+                disabled={includedQuestions.length === 0}
+                className="w-full"
+              >
+                {isExporting
+                  ? 'Generating...'
+                  : `Export ${exportFormat.toUpperCase()}`
+                }
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Right Column: Live Preview */}
+        {exportFormat === 'pdf' && (
+          <div className="hidden lg:block h-full max-h-[75vh]">
+            <ExportPreview />
+          </div>
+        )}
       </div>
     </Modal>
   );

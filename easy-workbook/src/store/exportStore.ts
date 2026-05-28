@@ -17,6 +17,7 @@ interface ExportState extends ExportSettings {
   setNoteStyleOpacity: (opacity: number) => void;
   setGridSize: (size: number) => void;
   setDotDensity: (density: number) => void;
+  setQuestionImageScale: (scale: number) => void;
   setPreviewMode: (preview: boolean) => void;
   resetDefaults: () => void;
   getSettings: () => ExportSettings;
@@ -34,6 +35,7 @@ const DEFAULT_SETTINGS: ExportSettings = {
   noteStyleOpacity: 0.15,
   gridSize: 20,
   dotDensity: 20,
+  questionImageScale: 1.0,
 };
 
 export const useExportStore = create<ExportState>((set, get) => ({
@@ -53,6 +55,7 @@ export const useExportStore = create<ExportState>((set, get) => ({
   setNoteStyleOpacity: (noteStyleOpacity) => set({ noteStyleOpacity }),
   setGridSize: (gridSize) => set({ gridSize }),
   setDotDensity: (dotDensity) => set({ dotDensity }),
+  setQuestionImageScale: (questionImageScale) => set({ questionImageScale }),
   setPreviewMode: (previewMode) => set({ previewMode }),
   
   resetDefaults: () => set({ ...DEFAULT_SETTINGS }),
@@ -71,6 +74,7 @@ export const useExportStore = create<ExportState>((set, get) => ({
       noteStyleOpacity: state.noteStyleOpacity,
       gridSize: state.gridSize,
       dotDensity: state.dotDensity,
+      questionImageScale: state.questionImageScale,
     };
   },
 }));

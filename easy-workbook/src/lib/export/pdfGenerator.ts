@@ -158,14 +158,18 @@ export async function generatePdf(
     const contentBottom = margins.bottom;
     const contentHeight = contentTop - contentBottom;
 
-    // Calculate space per question
-    const questionBlockHeight =
-      (contentHeight - (pageQuestions.length - 1) * spacing) /
-      pageQuestions.length;
+    // Calculate total space weight for the page
+    const totalWeight = pageQuestions.reduce((sum, q) => sum + (q.spaceWeight ?? 1), 0);
+    const availableHeight = contentHeight - (pageQuestions.length - 1) * spacing;
+
+    let currentTop = contentTop;
 
     for (let qIdx = 0; qIdx < pageQuestions.length; qIdx++) {
       const question = pageQuestions[qIdx];
-      const blockTop = contentTop - qIdx * (questionBlockHeight + spacing);
+      const weight = question.spaceWeight ?? 1;
+      const questionBlockHeight = (weight / totalWeight) * availableHeight;
+      
+      const blockTop = currentTop;
 
       // Report progress
       const overallIdx = pageIdx * questionsPerPage + qIdx;
@@ -194,15 +198,12 @@ export async function generatePdf(
       const pngImage = await pdfDoc.embedPng(questionImageBytes);
       const imgAspect = pngImage.width / pngImage.height;
 
-      // Calculate image dimensions (fit width, cap height)
-      let imgWidth = contentWidth;
+      // Apply the user's scale factor so questions have a uniform shape relative to the page
+      let imgWidth = contentWidth * (settings.questionImageScale ?? 1.0);
       let imgHeight = imgWidth / imgAspect;
 
-      // For practice mode, question takes ~40% of block, rest is solving space
-      const maxQuestionHeight =
-        settings.exportType === "practice"
-          ? questionBlockHeight * 0.4
-          : questionBlockHeight * 0.9;
+      // Ensure it does not overflow the block height (leaving a tiny margin)
+      const maxQuestionHeight = questionBlockHeight * 0.95;
 
       if (imgHeight > maxQuestionHeight) {
         imgHeight = maxQuestionHeight;
@@ -272,8 +273,9 @@ export async function generatePdf(
         question.answerCrop
       ) {
         try {
+          const answerPage = question.answerCrop.pageNumber ?? question.pageNumber;
           const answerBytes = await extractCrop(
-            question.pageNumber,
+            answerPage,
             question.answerCrop,
             3,
           );
@@ -307,6 +309,8 @@ export async function generatePdf(
           // Skip answer if extraction fails
         }
       }
+
+      currentTop -= (questionBlockHeight + spacing);
     }
   }
 

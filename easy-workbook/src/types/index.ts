@@ -1,10 +1,10 @@
-/** Normalized crop region — coordinates are 0-1 relative to page dimensions */
 export interface CropRegion {
   x: number;
   y: number;
   width: number;
   height: number;
   rotation: number;
+  pageNumber?: number; // 0-indexed page where this crop was taken
 }
 
 /** Note style for the solving space */
@@ -24,6 +24,7 @@ export interface Question {
   tags: string[];
   createdAt: number;
   thumbnail?: string; // data URL for sidebar preview
+  spaceWeight?: number; // relative weight for spacing on a page (default 1)
 }
 
 /** Built-in theme names */
@@ -45,6 +46,7 @@ export interface ExportSettings {
   noteStyleOpacity: number;
   gridSize: number;
   dotDensity: number;
+  questionImageScale: number; // 0.1 to 1.0 scaling factor for question images
 }
 
 /** Theme color palette */

@@ -66,6 +66,9 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
 
   // Questions on this page
   const pageQuestions = questions.filter((q) => q.pageNumber === pageIndex);
+  
+  // Answers on this page
+  const pageAnswers = questions.filter((q) => q.answerCrop && (q.answerCrop.pageNumber ?? q.pageNumber) === pageIndex);
 
   // Attach transformer to pending rect when in adjusting phase
   useEffect(() => {
@@ -179,7 +182,7 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
 
     if (isAnswerMode && answerForQuestionId) {
       // Adding an answer region to an existing question
-      setAnswerCrop(answerForQuestionId, { ...normalized, rotation: 0 });
+      setAnswerCrop(answerForQuestionId, { ...normalized, rotation: 0, pageNumber: pageIndex });
       addToast('Answer region added', 'success');
       setMode('select'); // Return to select mode
     } else {
@@ -194,7 +197,7 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       const newId = addQuestion({
         sourcePdfName: pdfFile.name,
         pageNumber: pageIndex,
-        questionCrop: { ...normalized, rotation: 0 },
+        questionCrop: { ...normalized, rotation: 0, pageNumber: pageIndex },
         thumbnail,
       });
       // Set as active so answer-select can target it
@@ -299,43 +302,43 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
                   fontStyle="600"
                   fill="white"
                 />
+              </Group>
+            );
+          })}
 
-                {/* Answer region overlay */}
-                {q.answerCrop && (() => {
-                  const ansRect = normalizedRectToStage(q.answerCrop, width, height);
-                  return (
-                    <>
-                      <Rect
-                        x={ansRect.x}
-                        y={ansRect.y}
-                        width={ansRect.width}
-                        height={ansRect.height}
-                        fill="rgba(34, 197, 94, 0.10)"
-                        stroke="#22c55e"
-                        strokeWidth={2}
-                        cornerRadius={3}
-                        dash={[6, 4]}
-                      />
-                      <Rect
-                        x={ansRect.x}
-                        y={ansRect.y - 22}
-                        width={64}
-                        height={22}
-                        fill="#22c55e"
-                        cornerRadius={[6, 6, 0, 0]}
-                      />
-                      <Text
-                        x={ansRect.x + 6}
-                        y={ansRect.y - 18}
-                        text={`${q.label} Ans`}
-                        fontSize={10}
-                        fontFamily="Inter, sans-serif"
-                        fontStyle="600"
-                        fill="white"
-                      />
-                    </>
-                  );
-                })()}
+          {/* ── Answers on this page ── */}
+          {pageAnswers.map((q) => {
+            const ansRect = normalizedRectToStage(q.answerCrop!, width, height);
+            return (
+              <Group key={`ans-${q.id}`}>
+                <Rect
+                  x={ansRect.x}
+                  y={ansRect.y}
+                  width={ansRect.width}
+                  height={ansRect.height}
+                  fill="rgba(34, 197, 94, 0.10)"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  cornerRadius={3}
+                  dash={[6, 4]}
+                />
+                <Rect
+                  x={ansRect.x}
+                  y={ansRect.y - 22}
+                  width={Math.max(64, q.label.length * 10 + 30)}
+                  height={22}
+                  fill="#22c55e"
+                  cornerRadius={[6, 6, 0, 0]}
+                />
+                <Text
+                  x={ansRect.x + 6}
+                  y={ansRect.y - 18}
+                  text={`${q.label} Ans`}
+                  fontSize={10}
+                  fontFamily="Inter, sans-serif"
+                  fontStyle="600"
+                  fill="white"
+                />
               </Group>
             );
           })}
