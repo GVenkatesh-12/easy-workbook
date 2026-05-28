@@ -33,7 +33,7 @@ export function ToastContainer() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="pointer-events-auto glass rounded-xl px-4 py-3 flex items-center gap-3 min-w-[280px] shadow-2xl"
+            className="pointer-events-auto glass rounded-xl px-5 py-3.5 flex items-center gap-3.5 min-w-[300px] shadow-2xl"
             onClick={() => removeToast(toast.id)}
           >
             {iconMap[toast.type]}

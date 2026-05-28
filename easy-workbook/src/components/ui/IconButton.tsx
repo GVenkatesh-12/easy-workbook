@@ -9,9 +9,9 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'w-8 h-8 text-sm',
-  md: 'w-10 h-10 text-base',
-  lg: 'w-12 h-12 text-lg',
+  sm: 'w-10 h-10 text-sm rounded-xl',
+  md: 'w-12 h-12 text-base rounded-xl',
+  lg: 'w-14 h-14 text-lg rounded-2xl',
 };
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -21,7 +21,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ref={ref}
         title={tooltip}
         className={`
-          inline-flex items-center justify-center rounded-xl
+          inline-flex shrink-0 items-center justify-center
           transition-all duration-200 ease-out
           active:scale-[0.92]
           disabled:opacity-40 disabled:pointer-events-none

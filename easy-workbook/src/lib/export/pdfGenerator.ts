@@ -1,7 +1,7 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import type { Question, ExportSettings } from '@/types';
-import { extractCrop } from './cropExtractor';
-import { getTheme } from './themes';
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import type { Question, ExportSettings } from "@/types";
+import { extractCrop } from "./cropExtractor";
+import { getTheme } from "./themes";
 
 /** A4 dimensions in points */
 const A4_WIDTH = 595.28;
@@ -11,7 +11,7 @@ const A4_HEIGHT = 841.89;
  * Parse hex color to pdf-lib rgb.
  */
 function hexToRgb(hex: string) {
-  const clean = hex.replace('#', '');
+  const clean = hex.replace("#", "");
   const r = parseInt(clean.substring(0, 2), 16) / 255;
   const g = parseInt(clean.substring(2, 4), 16) / 255;
   const b = parseInt(clean.substring(4, 6), 16) / 255;
@@ -22,11 +22,11 @@ function hexToRgb(hex: string) {
  * Draw note-style pattern on a PDF page.
  */
 function drawNotePattern(
-  page: ReturnType<PDFDocument['addPage']>,
+  page: ReturnType<PDFDocument["addPage"]>,
   settings: ExportSettings,
   startY: number,
   endY: number,
-  theme: ReturnType<typeof getTheme>
+  theme: ReturnType<typeof getTheme>,
 ) {
   const lineColor = hexToRgb(theme.lineColor);
   const { margins, noteStyleOpacity } = settings;
@@ -35,7 +35,7 @@ function drawNotePattern(
   const right = A4_WIDTH - margins.right;
 
   switch (settings.noteStyle) {
-    case 'lined':
+    case "lined":
       for (let y = startY; y >= endY; y -= settings.lineSpacing) {
         page.drawLine({
           start: { x: left, y },
@@ -47,7 +47,7 @@ function drawNotePattern(
       }
       break;
 
-    case 'dotted':
+    case "dotted":
       for (let x = left; x <= right; x += settings.dotDensity) {
         for (let y = startY; y >= endY; y -= settings.dotDensity) {
           page.drawCircle({
@@ -61,7 +61,7 @@ function drawNotePattern(
       }
       break;
 
-    case 'grid':
+    case "grid":
       // Vertical
       for (let x = left; x <= right; x += settings.gridSize) {
         page.drawLine({
@@ -84,7 +84,7 @@ function drawNotePattern(
       }
       break;
 
-    case 'blank':
+    case "blank":
     default:
       break;
   }
@@ -96,7 +96,7 @@ function drawNotePattern(
 export async function generatePdf(
   questions: Question[],
   settings: ExportSettings,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -134,7 +134,7 @@ export async function generatePdf(
     });
 
     // Header
-    page.drawText('Easy Workbook', {
+    page.drawText("Easy Workbook", {
       x: margins.left,
       y: A4_HEIGHT - 30,
       size: 8,
@@ -159,12 +159,14 @@ export async function generatePdf(
     const contentHeight = contentTop - contentBottom;
 
     // Calculate space per question
-    const questionBlockHeight = (contentHeight - (pageQuestions.length - 1) * spacing) / pageQuestions.length;
+    const questionBlockHeight =
+      (contentHeight - (pageQuestions.length - 1) * spacing) /
+      pageQuestions.length;
 
     for (let qIdx = 0; qIdx < pageQuestions.length; qIdx++) {
       const question = pageQuestions[qIdx];
       const blockTop = contentTop - qIdx * (questionBlockHeight + spacing);
-      
+
       // Report progress
       const overallIdx = pageIdx * questionsPerPage + qIdx;
       onProgress?.(((overallIdx + 1) / total) * 100);
@@ -172,7 +174,11 @@ export async function generatePdf(
       // Extract question image
       let questionImageBytes: Uint8Array;
       try {
-        questionImageBytes = await extractCrop(question.pageNumber, question.questionCrop, 3);
+        questionImageBytes = await extractCrop(
+          question.pageNumber,
+          question.questionCrop,
+          3,
+        );
       } catch {
         // If extraction fails, draw placeholder
         page.drawText(`[${question.label} — Failed to extract]`, {
@@ -193,9 +199,10 @@ export async function generatePdf(
       let imgHeight = imgWidth / imgAspect;
 
       // For practice mode, question takes ~40% of block, rest is solving space
-      const maxQuestionHeight = settings.exportType === 'practice'
-        ? questionBlockHeight * 0.4
-        : questionBlockHeight * 0.9;
+      const maxQuestionHeight =
+        settings.exportType === "practice"
+          ? questionBlockHeight * 0.4
+          : questionBlockHeight * 0.9;
 
       if (imgHeight > maxQuestionHeight) {
         imgHeight = maxQuestionHeight;
@@ -232,7 +239,10 @@ export async function generatePdf(
       });
 
       // Solving space with note pattern
-      if (settings.exportType === 'practice' || settings.exportType === 'combined') {
+      if (
+        settings.exportType === "practice" ||
+        settings.exportType === "combined"
+      ) {
         const solveTop = blockTop - imgHeight - spacing;
         const solveBottom = blockTop - questionBlockHeight;
 
@@ -246,16 +256,27 @@ export async function generatePdf(
         });
 
         // Note pattern in solving area
-        drawNotePattern(page, settings, solveTop - 5, Math.max(solveBottom, contentBottom), theme);
+        drawNotePattern(
+          page,
+          settings,
+          solveTop - 5,
+          Math.max(solveBottom, contentBottom),
+          theme,
+        );
       }
 
       // Answer (if included)
       if (
-        (settings.exportType === 'answer-key' || settings.exportType === 'combined') &&
+        (settings.exportType === "answer-key" ||
+          settings.exportType === "combined") &&
         question.answerCrop
       ) {
         try {
-          const answerBytes = await extractCrop(question.pageNumber, question.answerCrop, 3);
+          const answerBytes = await extractCrop(
+            question.pageNumber,
+            question.answerCrop,
+            3,
+          );
           const ansImg = await pdfDoc.embedPng(answerBytes);
           const ansAspect = ansImg.width / ansImg.height;
           let ansW = contentWidth * 0.8;
@@ -266,8 +287,8 @@ export async function generatePdf(
           }
 
           const ansY = blockTop - questionBlockHeight + ansH + 10;
-          
-          page.drawText('Answer:', {
+
+          page.drawText("Answer:", {
             x: margins.left,
             y: ansY + 5,
             size: 8,
@@ -296,9 +317,10 @@ export async function generatePdf(
  * Trigger download of the generated PDF.
  */
 export function downloadPdf(bytes: Uint8Array, filename: string): void {
-  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const pdfBytes = Uint8Array.from(bytes);
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);

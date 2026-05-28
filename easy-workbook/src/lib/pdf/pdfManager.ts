@@ -1,8 +1,8 @@
-import * as pdfjsLib from 'pdfjs-dist';
-import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
+import * as pdfjsLib from "pdfjs-dist";
+import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist";
 
 // Configure worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 /**
  * Track which pages have been rendered at which scale,
@@ -44,7 +44,7 @@ export class PdfManager {
 
     const loadingTask = pdfjsLib.getDocument({
       data,
-      cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.124/cmaps/',
+      cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.124/cmaps/",
       cMapPacked: true,
       enableXfa: true,
     });
@@ -54,7 +54,7 @@ export class PdfManager {
   }
 
   async getPage(pageIndex: number): Promise<PDFPageProxy> {
-    if (!this.document) throw new Error('No PDF document loaded');
+    if (!this.document) throw new Error("No PDF document loaded");
 
     // Cache PDFPageProxy objects to avoid repeated getPage calls
     const cached = this.pageProxyCache.get(pageIndex);
@@ -66,7 +66,9 @@ export class PdfManager {
     return page;
   }
 
-  async getPageDimensions(pageIndex: number): Promise<{ width: number; height: number }> {
+  async getPageDimensions(
+    pageIndex: number,
+  ): Promise<{ width: number; height: number }> {
     const page = await this.getPage(pageIndex);
     const viewport = page.getViewport({ scale: 1 });
     return { width: viewport.width, height: viewport.height };
@@ -85,9 +87,9 @@ export class PdfManager {
     pageIndex: number,
     canvas: HTMLCanvasElement,
     displayWidth: number,
-    displayHeight: number
+    displayHeight: number,
   ): Promise<void> {
-    if (!this.document) throw new Error('No PDF document loaded');
+    if (!this.document) throw new Error("No PDF document loaded");
 
     const page = await this.getPage(pageIndex);
     const dpr = window.devicePixelRatio || 1;
@@ -115,13 +117,14 @@ export class PdfManager {
     canvas.style.width = `${displayWidth}px`;
     canvas.style.height = `${displayHeight}px`;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Could not get canvas context');
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get canvas context");
 
     // Clear before rendering
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const renderTask = page.render({
+      canvas,
       canvasContext: ctx,
       viewport,
     });
@@ -135,7 +138,7 @@ export class PdfManager {
     } catch (err) {
       this.renderTasks.delete(pageIndex);
       // RenderingCancelledException is expected when scrolling fast
-      if ((err as Error).name !== 'RenderingCancelledException') {
+      if ((err as Error).name !== "RenderingCancelledException") {
         throw err;
       }
     }
@@ -148,25 +151,25 @@ export class PdfManager {
   async renderCrop(
     pageIndex: number,
     crop: { x: number; y: number; width: number; height: number },
-    outputScale = 3
+    outputScale = 3,
   ): Promise<HTMLCanvasElement> {
-    if (!this.document) throw new Error('No PDF document loaded');
+    if (!this.document) throw new Error("No PDF document loaded");
 
     const page = await this.getPage(pageIndex);
     const viewport = page.getViewport({ scale: outputScale });
 
     // Create a full-page canvas at high resolution
-    const fullCanvas = document.createElement('canvas');
+    const fullCanvas = document.createElement("canvas");
     fullCanvas.width = viewport.width;
     fullCanvas.height = viewport.height;
 
-    const ctx = fullCanvas.getContext('2d');
-    if (!ctx) throw new Error('Could not get canvas context');
+    const ctx = fullCanvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get canvas context");
 
-    await page.render({ canvasContext: ctx, viewport }).promise;
+    await page.render({ canvas: fullCanvas, canvasContext: ctx, viewport }).promise;
 
     // Now crop the region
-    const cropCanvas = document.createElement('canvas');
+    const cropCanvas = document.createElement("canvas");
     const sx = crop.x * viewport.width;
     const sy = crop.y * viewport.height;
     const sw = crop.width * viewport.width;
@@ -175,10 +178,20 @@ export class PdfManager {
     cropCanvas.width = Math.floor(sw);
     cropCanvas.height = Math.floor(sh);
 
-    const cropCtx = cropCanvas.getContext('2d');
-    if (!cropCtx) throw new Error('Could not get crop canvas context');
+    const cropCtx = cropCanvas.getContext("2d");
+    if (!cropCtx) throw new Error("Could not get crop canvas context");
 
-    cropCtx.drawImage(fullCanvas, sx, sy, sw, sh, 0, 0, Math.floor(sw), Math.floor(sh));
+    cropCtx.drawImage(
+      fullCanvas,
+      sx,
+      sy,
+      sw,
+      sh,
+      0,
+      0,
+      Math.floor(sw),
+      Math.floor(sh),
+    );
 
     return cropCanvas;
   }

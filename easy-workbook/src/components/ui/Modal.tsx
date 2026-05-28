@@ -33,7 +33,7 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-2xl' }
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -51,18 +51,18 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-2xl' }
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={`
-              relative ${maxWidth} w-full
+              relative ${maxWidth} max-h-[calc(100dvh-2rem)] w-full
               bg-surface-900 border border-surface-700
               rounded-2xl shadow-2xl overflow-hidden
             `}
           >
             {/* Header */}
             {title && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-surface-700">
-                <h2 className="text-lg font-semibold text-surface-100">{title}</h2>
+              <div className="flex items-center justify-between gap-4 border-b border-surface-700 px-5 py-4 sm:px-7 sm:py-5">
+                <h2 className="min-w-0 truncate text-lg font-semibold text-surface-100 sm:text-xl">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg
+                  className="w-9 h-9 flex items-center justify-center rounded-lg
                     text-surface-400 hover:text-surface-100 hover:bg-surface-800
                     transition-colors"
                 >
@@ -74,7 +74,7 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-2xl' }
             )}
 
             {/* Body */}
-            <div className="max-h-[70vh] overflow-y-auto">
+            <div className="max-h-[calc(100dvh-8rem)] overflow-y-auto">
               {children}
             </div>
           </motion.div>

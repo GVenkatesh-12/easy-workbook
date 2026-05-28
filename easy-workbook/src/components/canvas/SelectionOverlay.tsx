@@ -40,6 +40,7 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const mode = useUiStore((s) => s.mode);
   const setMode = useUiStore((s) => s.setMode);
   const addQuestion = useQuestionStore((s) => s.addQuestion);
+  const setActiveQuestion = useQuestionStore((s) => s.setActiveQuestion);
   const setAnswerCrop = useQuestionStore((s) => s.setAnswerCrop);
   const questions = useQuestionStore((s) => s.questions);
   const pdfFile = usePdfStore((s) => s.pdfFile);
@@ -190,19 +191,21 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
         // Non-critical
       }
 
-      addQuestion({
+      const newId = addQuestion({
         sourcePdfName: pdfFile.name,
         pageNumber: pageIndex,
         questionCrop: { ...normalized, rotation: 0 },
         thumbnail,
       });
+      // Set as active so answer-select can target it
+      setActiveQuestion(newId);
       addToast(`Question selected from page ${pageIndex + 1}`, 'success');
     }
 
     // Reset
     setPendingRect(null);
     setPhase('idle');
-  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrop, addQuestion, addToast, setMode, pageIndex, generateThumbnail]);
+  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrop, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail]);
 
   const handleCancel = useCallback(() => {
     setPendingRect(null);
@@ -404,35 +407,35 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       {/* ── Floating Confirm/Cancel buttons (HTML overlay, not Konva) ── */}
       {phase === 'adjusting' && pendingRect && (
         <div
-          className="absolute z-30 flex items-center gap-1.5 animate-fade-in"
+          className="absolute z-30 flex items-center gap-2 animate-fade-in"
           style={{
-            left: Math.min(btnPos.x, width - 160),
-            top: Math.min(btnPos.y, height - 40),
+            left: Math.min(Math.max(8, btnPos.x - 80), width - 220),
+            top: Math.min(btnPos.y, height - 48),
           }}
         >
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg 
-              bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold
-              shadow-lg shadow-brand-500/30 transition-all active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl
+              bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold
+              shadow-xl shadow-brand-500/30 transition-all active:scale-95"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             {isAnswerMode ? 'Add Answer' : 'Confirm'}
           </button>
           <button
             onClick={handleCancel}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg
-              bg-surface-800 hover:bg-surface-700 text-surface-300 text-xs font-medium
-              border border-surface-600 transition-all active:scale-95"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl
+              bg-surface-800 hover:bg-surface-700 text-surface-300 text-sm font-medium
+              border border-surface-600 shadow-lg transition-all active:scale-95"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
             Cancel
           </button>
-          <span className="text-[10px] text-surface-500 ml-1">
+          <span className="text-[10px] text-surface-500 ml-1 hidden sm:inline">
             Enter / Esc
           </span>
         </div>

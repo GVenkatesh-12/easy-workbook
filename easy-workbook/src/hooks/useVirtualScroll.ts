@@ -38,9 +38,10 @@ export function useVirtualScroll(options: VirtualScrollOptions): VirtualScrollRe
   for (let i = 0; i < totalPages; i++) {
     const dims = getPageDimensions(i) || defaultDims;
     const scaledWidth = dims.width * zoom;
-    const scaledHeight = dims.height * zoom;
-    // Center the page if narrower than container
-    const displayWidth = Math.min(scaledWidth, containerWidth - 40);
+    const minReadableWidth = Math.min(360, Math.max(280, dims.width * 0.5));
+    const availableWidth = Math.max(minReadableWidth, containerWidth - 48);
+    // Center the page when it fits, but never collapse it below a readable size.
+    const displayWidth = Math.min(scaledWidth, availableWidth);
     const scale = displayWidth / dims.width;
     const displayHeight = dims.height * scale;
 

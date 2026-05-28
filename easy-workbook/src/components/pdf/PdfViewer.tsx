@@ -81,7 +81,7 @@ export function PdfViewer() {
         (scrollContainerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
       }}
       onScroll={onScroll}
-      className="flex-1 overflow-y-auto overflow-x-hidden bg-surface-950 relative"
+      className="relative min-w-0 flex-1 overflow-x-auto overflow-y-auto bg-surface-950"
       style={{ touchAction: 'pan-y' }}
     >
       {/* Spacer div to create proper scroll height */}
@@ -97,8 +97,7 @@ export function PdfViewer() {
               style={{
                 position: 'absolute',
                 top: info.top,
-                left: '50%',
-                transform: 'translateX(-50%)',
+                left: Math.max(24, (containerWidth - info.width) / 2),
                 width: info.width,
                 height: info.height,
               }}

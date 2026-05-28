@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
-import type { Question, CropRegion, NoteStyle } from '@/types';
+import { create } from "zustand";
+import { v4 as uuidv4 } from "uuid";
+import type { Question, CropRegion } from "@/types";
 
 interface QuestionState {
   questions: Question[];
@@ -44,7 +44,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       label,
       rotation: 0,
       includedInExport: true,
-      noteStyle: 'lined',
+      noteStyle: "lined",
       tags: [],
       createdAt: Date.now(),
       thumbnail: params.thumbnail,
@@ -56,16 +56,19 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
     return id;
   },
 
-  removeQuestion: (id) => set((state) => ({
-    questions: state.questions.filter((q) => q.id !== id),
-    activeQuestionId: state.activeQuestionId === id ? null : state.activeQuestionId,
-  })),
+  removeQuestion: (id) =>
+    set((state) => ({
+      questions: state.questions.filter((q) => q.id !== id),
+      activeQuestionId:
+        state.activeQuestionId === id ? null : state.activeQuestionId,
+    })),
 
-  updateQuestion: (id, updates) => set((state) => ({
-    questions: state.questions.map((q) =>
-      q.id === id ? { ...q, ...updates } : q
-    ),
-  })),
+  updateQuestion: (id, updates) =>
+    set((state) => ({
+      questions: state.questions.map((q) =>
+        q.id === id ? { ...q, ...updates } : q,
+      ),
+    })),
 
   duplicateQuestion: (id) => {
     const original = get().questions.find((q) => q.id === id);
@@ -86,32 +89,36 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
     });
   },
 
-  reorderQuestions: (fromIndex, toIndex) => set((state) => {
-    const newQuestions = [...state.questions];
-    const [moved] = newQuestions.splice(fromIndex, 1);
-    newQuestions.splice(toIndex, 0, moved);
-    return { questions: newQuestions };
-  }),
+  reorderQuestions: (fromIndex, toIndex) =>
+    set((state) => {
+      const newQuestions = [...state.questions];
+      const [moved] = newQuestions.splice(fromIndex, 1);
+      newQuestions.splice(toIndex, 0, moved);
+      return { questions: newQuestions };
+    }),
 
-  toggleInclude: (id) => set((state) => ({
-    questions: state.questions.map((q) =>
-      q.id === id ? { ...q, includedInExport: !q.includedInExport } : q
-    ),
-  })),
+  toggleInclude: (id) =>
+    set((state) => ({
+      questions: state.questions.map((q) =>
+        q.id === id ? { ...q, includedInExport: !q.includedInExport } : q,
+      ),
+    })),
 
   setActiveQuestion: (id) => set({ activeQuestionId: id }),
 
-  setAnswerCrop: (id, crop) => set((state) => ({
-    questions: state.questions.map((q) =>
-      q.id === id ? { ...q, answerCrop: crop } : q
-    ),
-  })),
+  setAnswerCrop: (id, crop) =>
+    set((state) => ({
+      questions: state.questions.map((q) =>
+        q.id === id ? { ...q, answerCrop: crop } : q,
+      ),
+    })),
 
-  removeAnswerCrop: (id) => set((state) => ({
-    questions: state.questions.map((q) =>
-      q.id === id ? { ...q, answerCrop: undefined } : q
-    ),
-  })),
+  removeAnswerCrop: (id) =>
+    set((state) => ({
+      questions: state.questions.map((q) =>
+        q.id === id ? { ...q, answerCrop: undefined } : q,
+      ),
+    })),
 
   clearAll: () => set({ questions: [], activeQuestionId: null, nextLabel: 1 }),
 

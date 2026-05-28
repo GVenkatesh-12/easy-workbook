@@ -26,31 +26,31 @@ export function WelcomeScreen() {
   }, [handleFileDrop]);
 
   return (
-    <div className="flex-1 flex items-center justify-center p-8">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:flex sm:items-center sm:justify-center sm:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-xl"
+        className="mx-auto w-full max-w-xl"
       >
         {/* Logo / Brand */}
-        <div className="text-center mb-10">
+        <div className="mb-8 text-center sm:mb-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.4 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-3xl
-              bg-gradient-to-br from-brand-500 to-indigo-600 shadow-2xl shadow-brand-500/30 mb-6"
+            className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl
+              bg-gradient-to-br from-brand-500 to-indigo-600 shadow-2xl shadow-brand-500/30 sm:mb-6 sm:h-20 sm:w-20 sm:rounded-3xl"
           >
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="h-8 w-8 text-white sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
             </svg>
           </motion.div>
-          <h1 className="text-3xl font-bold text-surface-100 tracking-tight mb-2">
+          <h1 className="mb-2 text-2xl font-bold tracking-tight text-surface-100 sm:text-3xl">
             Easy Workbook
           </h1>
-          <p className="text-surface-400 text-lg">
+          <p className="text-base text-surface-400 sm:text-lg">
             Convert workbook PDFs into structured practice notebooks
           </p>
         </div>
@@ -65,7 +65,7 @@ export function WelcomeScreen() {
           whileTap={{ scale: 0.99 }}
           className={`
             relative cursor-pointer rounded-2xl border-2 border-dashed
-            p-12 text-center transition-all duration-300 ease-out
+            p-6 text-center transition-all duration-300 ease-out sm:p-12
             ${isDragOver
               ? 'border-brand-400 bg-brand-500/10 scale-[1.02]'
               : 'border-surface-600 hover:border-surface-400 bg-surface-900/50'
@@ -109,7 +109,7 @@ export function WelcomeScreen() {
         </motion.div>
 
         {/* Quick tips */}
-        <div className="mt-8 grid grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
           {[
             { icon: '📄', label: 'Open PDF', desc: 'Load any workbook' },
             { icon: '✂️', label: 'Select Questions', desc: 'Crop & organize' },
