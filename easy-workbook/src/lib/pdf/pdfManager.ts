@@ -98,13 +98,21 @@ export class PdfManager {
     const baseViewport = page.getViewport({ scale: 1 });
     const scaleToFit = displayWidth / baseViewport.width;
 
-    // Check if we already rendered this page at this scale
-    if (this.renderTracker.isRendered(pageIndex, scaleToFit)) {
-      return; // Already rendered, nothing to do
-    }
+    // We removed the renderTracker early return here.
+    // Since PdfPage destroys and recreates the canvas on mount/unmount (e.g. during virtual scroll),
+    // we must always run the render task to paint the new canvas, even if we rendered it before.
 
-    // Cancel any existing render for this page
-    this.cancelRender(pageIndex);
+    // Cancel any existing render for this page and WAIT for it to fully settle
+    const existingTask = this.renderTasks.get(pageIndex);
+    if (existingTask) {
+      existingTask.cancel();
+      try {
+        await existingTask.promise;
+      } catch (e) {
+        // Expected to throw RenderingCancelledException
+      }
+      this.renderTasks.delete(pageIndex);
+    }
 
     // Create viewport at display scale * DPR for crisp rendering
     const viewport = page.getViewport({ scale: scaleToFit * dpr });
@@ -200,7 +208,9 @@ export class PdfManager {
     const task = this.renderTasks.get(pageIndex);
     if (task) {
       task.cancel();
-      this.renderTasks.delete(pageIndex);
+      // We don't delete the task here. The promise's catch block in renderPageToCanvas
+      // will handle deleting it once the cancellation has fully settled.
+      // This allows new renders to find the task and await its cancellation.
     }
   }
 

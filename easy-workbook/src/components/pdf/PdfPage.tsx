@@ -47,8 +47,6 @@ export const PdfPage = memo(function PdfPage({ pageIndex, width, height, childre
 
   // Trigger render when page index or display size changes
   useEffect(() => {
-    // Invalidate since dimensions changed
-    pdfManager.invalidateAll();
     setIsRendered(false);
     renderPage();
     return () => {
