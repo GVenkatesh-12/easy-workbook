@@ -10,6 +10,7 @@ import { generateHtmlPractice, downloadHtml } from '@/lib/export/htmlGenerator';
 import { getAllThemes } from '@/lib/export/themes';
 import { getNoteStyleSvg } from '@/lib/export/noteStyleRenderer';
 import { ExportPreview } from './ExportPreview';
+import type { NoteStyle, ExportType, ThemeName } from '@/types';
 
 const NOTE_STYLES: { value: NoteStyle; label: string; icon: string }[] = [
   { value: 'blank', label: 'Blank', icon: '⬜' },
@@ -276,6 +277,54 @@ export function ExportDialog() {
                 onChange={store.setIncludeAnswers}
               />
             </div>
+
+            {/* Answer Image Controls */}
+            {(store.exportType !== 'practice' || store.includeAnswers) && (
+              <div className="p-5 bg-surface-800 rounded-xl border-2 border-surface-700 space-y-5">
+                <div>
+                  <div className="flex items-center justify-between mb-3.5">
+                    <label className="text-xs font-bold text-surface-300 uppercase tracking-widest block">
+                      Answer Image Size
+                    </label>
+                    <span className="text-xs text-brand-400 font-mono font-bold">
+                      {Math.round(store.answerImageScale * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1.0"
+                    step="0.05"
+                    value={store.answerImageScale}
+                    onChange={(e) => store.setAnswerImageScale(parseFloat(e.target.value))}
+                    className="w-full accent-brand-500"
+                  />
+                  <p className="text-[11px] text-surface-500 mt-2">
+                    Scale down the answer image relative to its original width.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-surface-300 uppercase tracking-widest mb-3.5 block">
+                    Answer Position
+                  </label>
+                  <div className="flex gap-2">
+                    {(['left', 'center', 'right'] as const).map((pos) => (
+                      <button
+                        key={pos}
+                        onClick={() => store.setAnswerPosition(pos)}
+                        className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200
+                          ${store.answerPosition === pos
+                            ? 'bg-brand-500/20 text-brand-400 border-2 border-brand-500/50'
+                            : 'bg-surface-900 text-surface-400 border-2 border-surface-700 hover:border-surface-600'
+                          }`}
+                      >
+                        {pos}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
 

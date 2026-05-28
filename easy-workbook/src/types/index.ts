@@ -15,7 +15,7 @@ export interface Question {
   id: string;
   sourcePdfName: string;
   pageNumber: number; // 0-indexed
-  questionCrop: CropRegion;
+  questionCrops: CropRegion[];
   answerCrop?: CropRegion;
   label: string; // "Q1", "Q2", etc.
   rotation: number;
@@ -47,6 +47,8 @@ export interface ExportSettings {
   gridSize: number;
   dotDensity: number;
   questionImageScale: number; // 0.1 to 1.0 scaling factor for question images
+  answerImageScale: number; // 0.1 to 1.0 scaling factor for answer images
+  answerPosition: 'left' | 'center' | 'right'; // Horizontal alignment of answers
 }
 
 /** Theme color palette */

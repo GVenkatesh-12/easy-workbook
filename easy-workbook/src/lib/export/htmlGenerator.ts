@@ -1,5 +1,5 @@
 import type { Question } from '@/types';
-import { extractCropAsDataUrl } from './cropExtractor';
+import { extractMergedCropsAsDataUrl } from './cropExtractor';
 
 /**
  * Generate a self-contained HTML practice sheet.
@@ -21,11 +21,10 @@ export async function generateHtmlPractice(
     const q = included[i];
     onProgress?.(((i + 1) / included.length) * 100);
 
-    const imageUrl = await extractCropAsDataUrl(q.pageNumber, q.questionCrop, 2);
+    const imageUrl = await extractMergedCropsAsDataUrl(q.questionCrops, 2);
     let answerUrl: string | undefined;
     if (q.answerCrop) {
-      const ansPage = q.answerCrop.pageNumber ?? q.pageNumber;
-      answerUrl = await extractCropAsDataUrl(ansPage, q.answerCrop, 2);
+      answerUrl = await extractMergedCropsAsDataUrl([q.answerCrop], 2);
     }
 
     questionData.push({
@@ -177,16 +176,19 @@ export async function generateHtmlPractice(
     .action-btn.solved-btn.active { background: #22c55e20; color: #22c55e; border-color: #22c55e40; }
     .action-btn.revise-btn.active { background: #f59e0b20; color: #f59e0b; border-color: #f59e0b40; }
 
-    .question-image {
-      padding: 16px;
-      text-align: center;
-      background: white;
+    .question-image-wrapper {
+      background-color: var(--question-bg);
+      border: 0.5pt solid var(--border);
+      padding: 4pt;
+      margin-bottom: 8pt;
+      text-align: left;
     }
 
-    .question-image img {
+    .question-image {
       max-width: 100%;
       height: auto;
-      border-radius: 4px;
+      display: block;
+      margin: 0;
     }
 
     .answer-section {

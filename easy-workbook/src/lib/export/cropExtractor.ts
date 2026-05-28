@@ -2,36 +2,95 @@ import { pdfManager } from '@/lib/pdf/pdfManager';
 import type { CropRegion } from '@/types';
 
 /**
- * Extract a crop region from a PDF page at high resolution.
- * Returns a PNG data URL suitable for embedding in exported PDFs.
+ * Extract multiple crop regions and merge them vertically into a single PNG.
  */
-export async function extractCrop(
-  pageIndex: number,
-  crop: CropRegion,
+export async function extractMergedCrops(
+  crops: CropRegion[],
   scale = 3
 ): Promise<Uint8Array> {
-  const canvas = await pdfManager.renderCrop(pageIndex, crop, scale);
-  
-  // Convert canvas to PNG bytes
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((b) => {
-      if (b) resolve(b);
-      else reject(new Error('Failed to create blob from crop'));
-    }, 'image/png');
-  });
+  if (crops.length === 0) {
+    throw new Error('No crops provided for extraction');
+  }
 
-  const arrayBuffer = await blob.arrayBuffer();
-  return new Uint8Array(arrayBuffer);
+  // Render each crop to an HTMLCanvasElement
+  const canvases = await Promise.all(
+    crops.map(crop => pdfManager.renderCrop(crop.pageNumber ?? 0, crop, scale))
+  );
+
+  if (canvases.length === 1) {
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvases[0].toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/png');
+    });
+    return new Uint8Array(await blob.arrayBuffer());
+  }
+
+  // Calculate merged dimensions
+  const maxWidth = Math.max(...canvases.map(c => c.width));
+  const totalHeight = canvases.reduce((sum, c) => sum + c.height, 0);
+
+  const mergedCanvas = document.createElement('canvas');
+  mergedCanvas.width = maxWidth;
+  mergedCanvas.height = totalHeight;
+  const ctx = mergedCanvas.getContext('2d');
+
+  if (ctx) {
+    // Fill with white background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, maxWidth, totalHeight);
+
+    let currentY = 0;
+    for (const c of canvases) {
+      // Center each part horizontally
+      const dx = (maxWidth - c.width) / 2;
+      ctx.drawImage(c, dx, currentY);
+      currentY += c.height;
+    }
+  }
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    mergedCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create merged blob')), 'image/png');
+  });
+  return new Uint8Array(await blob.arrayBuffer());
 }
 
 /**
- * Extract a crop region as a data URL (for previews).
+ * Extract multiple crop regions as a single data URL (for previews).
  */
-export async function extractCropAsDataUrl(
-  pageIndex: number,
-  crop: CropRegion,
+export async function extractMergedCropsAsDataUrl(
+  crops: CropRegion[],
   scale = 2
 ): Promise<string> {
-  const canvas = await pdfManager.renderCrop(pageIndex, crop, scale);
-  return canvas.toDataURL('image/png');
+  if (crops.length === 0) return '';
+  
+  if (crops.length === 1) {
+    const canvas = await pdfManager.renderCrop(crops[0].pageNumber ?? 0, crops[0], scale);
+    return canvas.toDataURL('image/png');
+  }
+
+  // For multiple crops, we can just use the same logic as above
+  const canvases = await Promise.all(
+    crops.map(crop => pdfManager.renderCrop(crop.pageNumber ?? 0, crop, scale))
+  );
+
+  const maxWidth = Math.max(...canvases.map(c => c.width));
+  const totalHeight = canvases.reduce((sum, c) => sum + c.height, 0);
+
+  const mergedCanvas = document.createElement('canvas');
+  mergedCanvas.width = maxWidth;
+  mergedCanvas.height = totalHeight;
+  const ctx = mergedCanvas.getContext('2d');
+
+  if (ctx) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, maxWidth, totalHeight);
+
+    let currentY = 0;
+    for (const c of canvases) {
+      const dx = (maxWidth - c.width) / 2;
+      ctx.drawImage(c, dx, currentY);
+      currentY += c.height;
+    }
+  }
+
+  return mergedCanvas.toDataURL('image/png');
 }

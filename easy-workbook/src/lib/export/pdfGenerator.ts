@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import type { Question, ExportSettings } from "@/types";
-import { extractCrop } from "./cropExtractor";
+import { extractMergedCrops } from "./cropExtractor";
 import { getTheme } from "./themes";
 
 /** A4 dimensions in points */
@@ -178,9 +178,8 @@ export async function generatePdf(
       // Extract question image
       let questionImageBytes: Uint8Array;
       try {
-        questionImageBytes = await extractCrop(
-          question.pageNumber,
-          question.questionCrop,
+        questionImageBytes = await extractMergedCrops(
+          question.questionCrops,
           3,
         );
       } catch {
@@ -199,18 +198,22 @@ export async function generatePdf(
       const imgAspect = pngImage.width / pngImage.height;
 
       // Apply the user's scale factor so questions have a uniform shape relative to the page
-      let imgWidth = contentWidth * (settings.questionImageScale ?? 1.0);
+      // Subtract 8 to account for the border padding
+      let imgWidth = (contentWidth - 8) * (settings.questionImageScale ?? 1.0);
       let imgHeight = imgWidth / imgAspect;
 
-      // Ensure it does not overflow the block height (leaving a tiny margin)
-      const maxQuestionHeight = questionBlockHeight * 0.95;
+      // Ensure it does not overflow the block height (leaving a tiny margin for border)
+      const maxQuestionHeight = questionBlockHeight * 0.95 - 8;
 
       if (imgHeight > maxQuestionHeight) {
         imgHeight = maxQuestionHeight;
         imgWidth = imgHeight * imgAspect;
       }
 
-      // Question label
+      // Left-align the image (with a small 4pt padding from the margin)
+      const startX = margins.left + 4;
+
+      // Question label (aligned left)
       page.drawText(question.label, {
         x: margins.left,
         y: blockTop,
@@ -219,12 +222,12 @@ export async function generatePdf(
         color: accentColor,
       });
 
-      // Question border
+      // Question border (padded by 4pt on all sides)
       page.drawRectangle({
-        x: margins.left,
-        y: blockTop - imgHeight - 5,
-        width: imgWidth,
-        height: imgHeight + 5,
+        x: startX - 4,
+        y: blockTop - imgHeight - 8,
+        width: imgWidth + 8,
+        height: imgHeight + 8,
         borderColor: borderColor,
         borderWidth: 0.5,
         color: hexToRgb(theme.questionBg),
@@ -233,10 +236,10 @@ export async function generatePdf(
 
       // Draw question image
       page.drawImage(pngImage, {
-        x: margins.left + 4,
-        y: blockTop - imgHeight - 2,
-        width: imgWidth - 8,
-        height: imgHeight - 4,
+        x: startX,
+        y: blockTop - imgHeight - 4,
+        width: imgWidth,
+        height: imgHeight,
       });
 
       // Solving space with note pattern
@@ -273,25 +276,36 @@ export async function generatePdf(
         question.answerCrop
       ) {
         try {
-          const answerPage = question.answerCrop.pageNumber ?? question.pageNumber;
-          const answerBytes = await extractCrop(
-            answerPage,
-            question.answerCrop,
+          const answerBytes = await extractMergedCrops(
+            [question.answerCrop],
             3,
           );
           const ansImg = await pdfDoc.embedPng(answerBytes);
           const ansAspect = ansImg.width / ansImg.height;
-          let ansW = contentWidth * 0.8;
+          
+          // Apply the user's scale factor for answers
+          let ansW = contentWidth * (settings.answerImageScale ?? 1.0);
           let ansH = ansW / ansAspect;
-          if (ansH > 100) {
-            ansH = 100;
+          
+          // Ensure it does not overflow the block height
+          const maxAnsHeight = questionBlockHeight * 0.95;
+          if (ansH > maxAnsHeight) {
+            ansH = maxAnsHeight;
             ansW = ansH * ansAspect;
           }
 
           const ansY = blockTop - questionBlockHeight + ansH + 10;
 
+          // Determine horizontal position
+          let startX = margins.left;
+          if (settings.answerPosition === 'center') {
+            startX = margins.left + (contentWidth - ansW) / 2;
+          } else if (settings.answerPosition === 'right') {
+            startX = margins.left + contentWidth - ansW;
+          }
+
           page.drawText("Answer:", {
-            x: margins.left,
+            x: startX,
             y: ansY + 5,
             size: 8,
             font: boldFont,
@@ -300,7 +314,7 @@ export async function generatePdf(
           });
 
           page.drawImage(ansImg, {
-            x: margins.left,
+            x: startX,
             y: ansY - ansH,
             width: ansW,
             height: ansH,

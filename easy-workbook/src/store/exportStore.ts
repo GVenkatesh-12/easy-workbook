@@ -18,6 +18,8 @@ interface ExportState extends ExportSettings {
   setGridSize: (size: number) => void;
   setDotDensity: (density: number) => void;
   setQuestionImageScale: (scale: number) => void;
+  setAnswerImageScale: (scale: number) => void;
+  setAnswerPosition: (position: 'left' | 'center' | 'right') => void;
   setPreviewMode: (preview: boolean) => void;
   resetDefaults: () => void;
   getSettings: () => ExportSettings;
@@ -36,6 +38,8 @@ const DEFAULT_SETTINGS: ExportSettings = {
   gridSize: 20,
   dotDensity: 20,
   questionImageScale: 1.0,
+  answerImageScale: 1.0,
+  answerPosition: 'left',
 };
 
 export const useExportStore = create<ExportState>((set, get) => ({
@@ -56,6 +60,8 @@ export const useExportStore = create<ExportState>((set, get) => ({
   setGridSize: (gridSize) => set({ gridSize }),
   setDotDensity: (dotDensity) => set({ dotDensity }),
   setQuestionImageScale: (questionImageScale) => set({ questionImageScale }),
+  setAnswerImageScale: (answerImageScale) => set({ answerImageScale }),
+  setAnswerPosition: (answerPosition) => set({ answerPosition }),
   setPreviewMode: (previewMode) => set({ previewMode }),
   
   resetDefaults: () => set({ ...DEFAULT_SETTINGS }),
@@ -75,6 +81,8 @@ export const useExportStore = create<ExportState>((set, get) => ({
       gridSize: state.gridSize,
       dotDensity: state.dotDensity,
       questionImageScale: state.questionImageScale,
+      answerImageScale: state.answerImageScale,
+      answerPosition: state.answerPosition,
     };
   },
 }));

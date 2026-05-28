@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, MouseEvent as ReactMouseEvent } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuestionStore } from '@/store/questionStore';
 import { useExportStore } from '@/store/exportStore';
-import type { Question } from '@/types';
+import type { Question, ExportType } from '@/types';
 import { getNoteStyleSvg } from '@/lib/export/noteStyleRenderer';
 import { getTheme } from '@/lib/export/themes';
 
@@ -115,7 +115,7 @@ function QuestionBlock({
 }: {
   question: Question;
   isLast: boolean;
-  exportType: string;
+  exportType: ExportType;
   theme: ReturnType<typeof getTheme>;
   noteBg: string;
   includeAnswers: boolean;
@@ -211,13 +211,13 @@ function QuestionBlock({
           <div 
             className="flex-1 w-full mt-1 border-t border-black/5 opacity-50 relative min-h-0"
             style={{ backgroundImage: noteBg }}
-          >
-            {/* Optional Answer preview */}
-            {includeAnswers && (exportType === 'combined' || exportType === 'answer-key') && question.answerCrop && (
-              <div className="absolute bottom-0 left-0 right-0 h-10 border-t border-emerald-500/30 bg-emerald-500/5 flex items-center justify-center text-[9px] text-emerald-600 font-bold uppercase tracking-wider backdrop-blur-sm">
-                Answer Region
-              </div>
-            )}
+          />
+        )}
+
+        {/* Optional Answer preview */}
+        {includeAnswers && (exportType === 'combined' || exportType === 'answer-key') && question.answerCrop && (
+          <div className="h-10 border-t border-emerald-500/30 bg-emerald-500/5 flex items-center justify-center text-[9px] text-emerald-600 font-bold uppercase tracking-wider shrink-0 mt-1">
+            Answer Region
           </div>
         )}
       </div>

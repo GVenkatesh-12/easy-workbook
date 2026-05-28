@@ -11,6 +11,7 @@ import {
   clampNormalizedRect,
   hasArea,
 } from '@/lib/canvas/coordinateUtils';
+import { extractMergedCropsAsDataUrl } from '@/lib/export/cropExtractor';
 
 interface SelectionOverlayProps {
   pageIndex: number;
@@ -43,6 +44,9 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const setActiveQuestion = useQuestionStore((s) => s.setActiveQuestion);
   const setAnswerCrop = useQuestionStore((s) => s.setAnswerCrop);
   const questions = useQuestionStore((s) => s.questions);
+  const pendingQuestionCrops = useQuestionStore((s) => s.pendingQuestionCrops);
+  const addPendingCrop = useQuestionStore((s) => s.addPendingCrop);
+  const clearPendingCrops = useQuestionStore((s) => s.clearPendingCrops);
   const pdfFile = usePdfStore((s) => s.pdfFile);
   const addToast = useUiStore((s) => s.addToast);
   const { generateThumbnail } = useThumbnail();
@@ -64,8 +68,10 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const isAnswerMode = mode === 'answer-select';
   const isActive = isSelectionMode || isAnswerMode;
 
-  // Questions on this page
-  const pageQuestions = questions.filter((q) => q.pageNumber === pageIndex);
+  // Questions that have at least one part on this page
+  const pageQuestions = questions.filter((q) => 
+    q.questionCrops.some(crop => (crop.pageNumber ?? q.pageNumber) === pageIndex)
+  );
   
   // Answers on this page
   const pageAnswers = questions.filter((q) => q.answerCrop && (q.answerCrop.pageNumber ?? q.pageNumber) === pageIndex);
@@ -152,6 +158,40 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
     startPointRef.current = null;
   }, [phase, drawingRect, width, height]);
 
+  const handleAddPart = useCallback(() => {
+    if (!pendingRect) return;
+    
+    const node = pendingRectRef.current;
+    let finalRect = pendingRect;
+    if (node) {
+      finalRect = {
+        x: node.x(),
+        y: node.y(),
+        width: node.width() * node.scaleX(),
+        height: node.height() * node.scaleY(),
+      };
+    }
+
+    const normalized = clampNormalizedRect(
+      stageRectToNormalized(finalRect, width, height)
+    );
+
+    if (!hasArea(normalized, 0.001)) {
+      addToast('Selection too small', 'error');
+      handleCancel();
+      return;
+    }
+
+    addPendingCrop({ ...normalized, rotation: 0, pageNumber: pageIndex });
+    addToast('Part added. Select the next part.', 'info');
+    
+    // Reset local drawing state to allow another selection
+    setPendingRect(null);
+    setDrawingRect(null);
+    setPhase('idle');
+    startPointRef.current = null;
+  }, [pendingRect, width, height, pageIndex, addPendingCrop, addToast]);
+
   // ─── Confirm / Cancel ───
 
   const handleConfirm = useCallback(async () => {
@@ -186,39 +226,45 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       addToast('Answer region added', 'success');
       setMode('select'); // Return to select mode
     } else {
-      // Adding a new question
+      // Adding a new question (combining any pending crops + this final one)
+      const finalCrop = { ...normalized, rotation: 0, pageNumber: pageIndex };
+      const allCrops = [...pendingQuestionCrops, finalCrop];
+      
       let thumbnail: string | undefined;
       try {
-        thumbnail = await generateThumbnail(pageIndex, normalized);
+        // Generate a merged thumbnail from all parts
+        thumbnail = await extractMergedCropsAsDataUrl(allCrops, 1.5);
       } catch {
         // Non-critical
       }
 
       const newId = addQuestion({
         sourcePdfName: pdfFile.name,
-        pageNumber: pageIndex,
-        questionCrop: { ...normalized, rotation: 0, pageNumber: pageIndex },
+        pageNumber: allCrops[0].pageNumber ?? pageIndex, // Main page is the first part's page
+        questionCrops: allCrops,
         thumbnail,
       });
       // Set as active so answer-select can target it
       setActiveQuestion(newId);
-      addToast(`Question selected from page ${pageIndex + 1}`, 'success');
+      addToast(`Question selected`, 'success');
     }
 
     // Reset
     setPendingRect(null);
     setPhase('idle');
-  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrop, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail]);
+    clearPendingCrops();
+  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrop, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail, pendingQuestionCrops, clearPendingCrops]);
 
   const handleCancel = useCallback(() => {
     setPendingRect(null);
     setDrawingRect(null);
     setPhase('idle');
     startPointRef.current = null;
+    clearPendingCrops();
     if (isAnswerMode) {
       setMode('select');
     }
-  }, [isAnswerMode, setMode]);
+  }, [isAnswerMode, setMode, clearPendingCrops]);
 
   // ─── Keyboard shortcuts ───
   useEffect(() => {
@@ -270,33 +316,78 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       >
         <Layer>
           {/* ── Existing confirmed selections on this page ── */}
-          {pageQuestions.map((q) => {
-            const rect = normalizedRectToStage(q.questionCrop, width, height);
+          {pageQuestions.map((q) => (
+            <Group key={q.id}>
+              {q.questionCrops.map((crop, idx) => {
+                // Only draw parts that belong to this page
+                if ((crop.pageNumber ?? q.pageNumber) !== pageIndex) return null;
+                
+                const rect = normalizedRectToStage(crop, width, height);
+                return (
+                  <Group key={`${q.id}-part-${idx}`}>
+                    <Rect
+                      x={rect.x}
+                      y={rect.y}
+                      width={rect.width}
+                      height={rect.height}
+                      fill="rgba(99, 102, 241, 0.12)"
+                      stroke="#6366f1"
+                      strokeWidth={2}
+                      cornerRadius={3}
+                    />
+                    {/* Label badge */}
+                    <Rect
+                      x={rect.x}
+                      y={rect.y - 24}
+                      width={Math.max(44, (q.label.length + (q.questionCrops.length > 1 ? 8 : 0)) * 10 + 20)}
+                      height={24}
+                      fill="#6366f1"
+                      cornerRadius={[6, 6, 0, 0]}
+                    />
+                    <Text
+                      x={rect.x + 8}
+                      y={rect.y - 19}
+                      text={q.questionCrops.length > 1 ? `${q.label} (pt ${idx + 1})` : q.label}
+                      fontSize={12}
+                      fontFamily="Inter, sans-serif"
+                      fontStyle="600"
+                      fill="white"
+                    />
+                  </Group>
+                );
+              })}
+            </Group>
+          ))}
+
+          {/* ── Pending multi-part selections on this page ── */}
+          {pendingQuestionCrops.map((crop, idx) => {
+            if ((crop.pageNumber ?? pageIndex) !== pageIndex) return null;
+            const rect = normalizedRectToStage(crop, width, height);
             return (
-              <Group key={q.id}>
+              <Group key={`pending-${idx}`}>
                 <Rect
                   x={rect.x}
                   y={rect.y}
                   width={rect.width}
                   height={rect.height}
-                  fill="rgba(99, 102, 241, 0.12)"
-                  stroke="#6366f1"
+                  fill="rgba(245, 158, 11, 0.12)"
+                  stroke="#f59e0b"
                   strokeWidth={2}
+                  dash={[6, 4]}
                   cornerRadius={3}
                 />
-                {/* Label badge */}
                 <Rect
                   x={rect.x}
                   y={rect.y - 24}
-                  width={Math.max(44, q.label.length * 10 + 20)}
+                  width={80}
                   height={24}
-                  fill="#6366f1"
+                  fill="#f59e0b"
                   cornerRadius={[6, 6, 0, 0]}
                 />
                 <Text
                   x={rect.x + 8}
                   y={rect.y - 19}
-                  text={q.label}
+                  text={`Part ${idx + 1}`}
                   fontSize={12}
                   fontFamily="Inter, sans-serif"
                   fontStyle="600"
@@ -410,37 +501,48 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       {/* ── Floating Confirm/Cancel buttons (HTML overlay, not Konva) ── */}
       {phase === 'adjusting' && pendingRect && (
         <div
-          className="absolute z-30 flex items-center gap-2 animate-fade-in"
+          className="absolute z-30 flex items-center gap-1.5 animate-fade-in"
           style={{
-            left: Math.min(Math.max(8, btnPos.x - 80), width - 220),
-            top: Math.min(btnPos.y, height - 48),
+            left: Math.min(Math.max(8, btnPos.x - 80), width - 240),
+            top: Math.min(Math.max(8, btnPos.y), height - 48),
           }}
         >
           <button
             onClick={handleConfirm}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl
-              bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold
-              shadow-xl shadow-brand-500/30 transition-all active:scale-95"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg
+              bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold
+              shadow-lg shadow-brand-500/30 transition-all active:scale-95"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            {isAnswerMode ? 'Add Answer' : 'Confirm'}
+            {isAnswerMode ? 'Add Ans' : 'Confirm'}
           </button>
+          {!isAnswerMode && (
+            <button
+              onClick={handleAddPart}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg
+                bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold
+                shadow-lg shadow-amber-500/30 transition-all active:scale-95"
+              title="Add another part to this question (e.g. on next page)"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Part
+            </button>
+          )}
           <button
             onClick={handleCancel}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl
-              bg-surface-800 hover:bg-surface-700 text-surface-300 text-sm font-medium
+            className="flex items-center justify-center w-8 h-8 rounded-lg
+              bg-surface-800 hover:bg-surface-700 text-surface-300
               border border-surface-600 shadow-lg transition-all active:scale-95"
+            title="Cancel (Esc)"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Cancel
           </button>
-          <span className="text-[10px] text-surface-500 ml-1 hidden sm:inline">
-            Enter / Esc
-          </span>
         </div>
       )}
     </>
