@@ -39,13 +39,9 @@ export function WelcomeScreen() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.4 }}
-            className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-2xl
-              bg-gradient-to-br from-brand-500 to-indigo-600 shadow-2xl shadow-brand-500/30 sm:mb-6 sm:h-20 sm:w-20 sm:rounded-3xl"
+            className="mb-5 inline-flex h-16 w-16 shadow-2xl shadow-brand-500/30 rounded-[1rem] sm:mb-6 sm:h-20 sm:w-20 sm:rounded-[1.25rem] overflow-hidden"
           >
-            <svg className="h-8 w-8 text-white sm:h-10 sm:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
+            <img src="/favicon.svg" alt="Easy Workbook" className="w-full h-full object-cover" />
           </motion.div>
           <h1 className="mb-2 text-2xl font-bold tracking-tight text-surface-100 sm:text-3xl">
             Easy Workbook

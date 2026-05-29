@@ -31,11 +31,8 @@ export function Toolbar() {
     <header className="flex flex-wrap items-center gap-4 px-4 py-2 glass border-b border-surface-700/50 z-30 shrink-0 lg:flex-nowrap lg:gap-5 lg:px-6">
       {/* Left: Logo + file info */}
       <div className="flex min-w-0 flex-1 items-center gap-4 lg:flex-none">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center shrink-0">
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-          </svg>
+        <div className="w-8 h-8 rounded-lg shadow-sm shadow-brand-500/20 flex items-center justify-center shrink-0 overflow-hidden">
+          <img src="/favicon.svg" alt="Easy Workbook" className="w-full h-full object-cover" />
         </div>
         {pdfFile ? (
           <div className="min-w-0">
