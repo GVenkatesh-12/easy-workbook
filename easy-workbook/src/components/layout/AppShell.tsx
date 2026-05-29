@@ -18,7 +18,7 @@ export function AppShell() {
   const hasPdf = pdfDocument !== null;
 
   return (
-    <div className="h-dvh min-h-dvh w-full overflow-hidden flex flex-col bg-surface-950">
+    <div className="h-dvh min-h-dvh w-full overflow-hidden flex flex-col bg-surface-950 bg-dot-grid">
       <Toolbar />
 
       {/* Main content area */}

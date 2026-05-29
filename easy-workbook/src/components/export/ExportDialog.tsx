@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Toggle } from '@/components/ui/Toggle';
 import { useExportStore } from '@/store/exportStore';
@@ -78,17 +79,24 @@ export function ExportDialog() {
         <div className="flex flex-col max-h-[75vh]">
           {/* Tabs */}
           {exportFormat === 'pdf' && (
-            <div className="flex gap-1 border-b border-surface-700 pb-px mb-5 shrink-0">
+            <div className="flex gap-1 border border-surface-700 p-1 mb-5 shrink-0 bg-surface-800/30 rounded-lg">
               {(['general', 'appearance', 'answers'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider rounded-t-lg transition-all duration-200 border-b-2 flex items-center gap-2 ${
+                  className={`relative flex-1 px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider rounded-md transition-colors z-10 flex items-center justify-center gap-2 ${
                     activeTab === tab
-                      ? 'text-brand-400 border-brand-500 bg-surface-800'
-                      : 'text-surface-400 border-transparent hover:text-surface-200 hover:bg-surface-800/50'
+                      ? 'text-white'
+                      : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800/50'
                   }`}
                 >
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="exportTabPill"
+                      className="absolute inset-0 bg-brand-500 rounded-md -z-10 shadow-md shadow-brand-500/20"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
                   {tab === 'general' && '⚙️ General'}
                   {tab === 'appearance' && '🎨 Appearance'}
                   {tab === 'answers' && '✅ Answers'}

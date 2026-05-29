@@ -75,7 +75,12 @@ export function QuestionSidebar() {
           {/* Question list */}
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4">
             {questions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center px-8 py-12">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center justify-center h-full text-center px-8 py-12"
+              >
                 <div className="w-16 h-16 rounded-2xl bg-surface-800 flex items-center justify-center mb-5">
                   <svg className="w-8 h-8 text-surface-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -85,7 +90,7 @@ export function QuestionSidebar() {
                 <p className="text-xs text-surface-500 leading-relaxed max-w-[200px]">
                   Switch to Select mode and drag on the PDF to crop question regions
                 </p>
-              </div>
+              </motion.div>
             ) : (
               <DndContext
                 sensors={sensors}
@@ -169,9 +174,9 @@ function SortableQuestionCard({ question }: { question: Question }) {
       ref={setNodeRef}
       style={style}
       className={`
-        group rounded-lg border transition-all duration-150
+        group rounded-lg border transition-all duration-200
         ${question.includedInExport
-          ? 'bg-surface-800/60 border-surface-700 hover:border-surface-600 shadow-sm'
+          ? 'bg-surface-800/60 border-surface-700 hover:border-surface-500 shadow-sm hover:shadow-lg hover:-translate-y-0.5'
           : 'bg-surface-800/30 border-surface-800 opacity-60'
         }
       `}

@@ -70,8 +70,8 @@
   }
 
   ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 10px;
+      height: 10px;
   }
 
   ::-webkit-scrollbar-track {
@@ -79,12 +79,18 @@
   }
 
   ::-webkit-scrollbar-thumb {
-      background: var(--color-surface-600);
-      border-radius: 4px;
+      background: transparent;
+      border-radius: 5px;
+      border: 3px solid transparent;
+      background-clip: content-box;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-      background: var(--color-surface-500);
+  *:hover::-webkit-scrollbar-thumb {
+      background-color: var(--color-surface-700);
+  }
+
+  *:hover::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-surface-500);
   }
 
   button,
@@ -144,6 +150,11 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .bg-dot-grid {
+      background-image: radial-gradient(var(--color-surface-800) 1px, transparent 1px);
+      background-size: 24px 24px;
   }
 }
 
