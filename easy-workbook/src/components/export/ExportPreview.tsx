@@ -197,8 +197,7 @@ function QuestionBlock({
             <img 
               src={question.thumbnail} 
               alt={question.label}
-              className="w-full h-full object-contain object-top opacity-80"
-              style={{ mixBlendMode: 'multiply' }}
+              className="w-full h-full object-contain object-top"
               draggable={false}
             />
           ) : (
