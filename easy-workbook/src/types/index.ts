@@ -42,7 +42,6 @@ export interface ExportSettings {
   margins: { top: number; right: number; bottom: number; left: number };
   spacing: number;
   lineSpacing: number;
-  includeAnswers: boolean;
   noteStyleOpacity: number;
   gridSize: number;
   dotDensity: number;

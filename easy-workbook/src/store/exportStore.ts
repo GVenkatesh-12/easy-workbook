@@ -13,7 +13,6 @@ interface ExportState extends ExportSettings {
   setMargins: (margins: Partial<ExportSettings['margins']>) => void;
   setSpacing: (spacing: number) => void;
   setLineSpacing: (spacing: number) => void;
-  setIncludeAnswers: (include: boolean) => void;
   setNoteStyleOpacity: (opacity: number) => void;
   setGridSize: (size: number) => void;
   setDotDensity: (density: number) => void;
@@ -35,7 +34,6 @@ const DEFAULT_SETTINGS: ExportSettings = {
   margins: { top: 40, right: 40, bottom: 40, left: 40 },
   spacing: 20,
   lineSpacing: 24,
-  includeAnswers: false,
   noteStyleOpacity: 0.15,
   gridSize: 20,
   dotDensity: 20,
@@ -59,7 +57,6 @@ export const useExportStore = create<ExportState>((set, get) => ({
   })),
   setSpacing: (spacing) => set({ spacing }),
   setLineSpacing: (lineSpacing) => set({ lineSpacing }),
-  setIncludeAnswers: (includeAnswers) => set({ includeAnswers }),
   setNoteStyleOpacity: (noteStyleOpacity) => set({ noteStyleOpacity }),
   setGridSize: (gridSize) => set({ gridSize }),
   setDotDensity: (dotDensity) => set({ dotDensity }),
@@ -82,7 +79,6 @@ export const useExportStore = create<ExportState>((set, get) => ({
       margins: state.margins,
       spacing: state.spacing,
       lineSpacing: state.lineSpacing,
-      includeAnswers: state.includeAnswers,
       noteStyleOpacity: state.noteStyleOpacity,
       gridSize: state.gridSize,
       dotDensity: state.dotDensity,

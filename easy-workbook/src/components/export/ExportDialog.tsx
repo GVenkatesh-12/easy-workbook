@@ -374,22 +374,8 @@ export function ExportDialog() {
             {/* -------------------- ANSWERS TAB -------------------- */}
             {activeTab === 'answers' && exportFormat === 'pdf' && (
               <div className="space-y-6">
-                {/* Include Answers Toggle */}
-                <div className="flex items-center justify-between gap-4 p-4 bg-surface-800/50 rounded-xl border border-surface-700">
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-surface-200">Include Answers</div>
-                    <div className="text-xs text-surface-500 mt-1">
-                      Show cropped answer regions in the exported PDF
-                    </div>
-                  </div>
-                  <Toggle
-                    checked={store.includeAnswers}
-                    onChange={store.setIncludeAnswers}
-                  />
-                </div>
-
                 {/* Answer Image Controls */}
-                {(store.exportType !== 'practice' || store.includeAnswers) ? (
+                {(store.exportType !== 'practice') ? (
                   <div className="bg-surface-800/50 p-4 rounded-xl border border-surface-700 space-y-5">
                     <div>
                       <div className="flex items-center justify-between mb-3.5">

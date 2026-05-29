@@ -15,7 +15,6 @@ export function ExportPreview() {
   const questionsPerPage = useExportStore((s) => s.questionsPerPage);
   const noteStyle = useExportStore((s) => s.noteStyle);
   const themeName = useExportStore((s) => s.theme);
-  const includeAnswers = useExportStore((s) => s.includeAnswers);
   const questionImageScale = useExportStore((s) => s.questionImageScale);
 
   const customPageColor = useExportStore((s) => s.customPageColor);
@@ -65,7 +64,6 @@ export function ExportPreview() {
                       isLast={qIdx === pageQuestions.length - 1}
                       exportType={exportType}
                       theme={theme}
-                      includeAnswers={includeAnswers}
                       imageScale={questionImageScale}
                       onWeightChange={(delta) => {
                         // Delta is a number from -1 to 1 (representing a shift in ratio)
@@ -112,7 +110,6 @@ function QuestionBlock({
   isLast,
   exportType,
   theme,
-  includeAnswers,
   imageScale,
   onWeightChange,
 }: {
@@ -120,7 +117,6 @@ function QuestionBlock({
   isLast: boolean;
   exportType: ExportType;
   theme: ReturnType<typeof getTheme>;
-  includeAnswers: boolean;
   imageScale: number;
   onWeightChange: (delta: number) => void;
 }) {
@@ -213,7 +209,7 @@ function QuestionBlock({
         )}
 
         {/* Optional Answer preview */}
-        {includeAnswers && (exportType === 'combined' || exportType === 'answer-key') && question.answerCrop && (
+        {(exportType === 'combined' || exportType === 'answer-key') && question.answerCrop && (
           <div className="h-10 border-t border-emerald-500/30 bg-emerald-500/5 flex items-center justify-center text-[9px] text-emerald-600 font-bold uppercase tracking-wider shrink-0 mt-1">
             Answer Region
           </div>
