@@ -18,8 +18,18 @@ export async function extractMergedCrops(
   );
 
   if (canvases.length === 1) {
+    const canvas = canvases[0];
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = canvas.width;
+    finalCanvas.height = canvas.height;
+    const ctx = finalCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+    }
     const blob = await new Promise<Blob>((resolve, reject) => {
-      canvases[0].toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/png');
+      finalCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/jpeg', 0.85);
     });
     return new Uint8Array(await blob.arrayBuffer());
   }
@@ -48,7 +58,7 @@ export async function extractMergedCrops(
   }
 
   const blob = await new Promise<Blob>((resolve, reject) => {
-    mergedCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create merged blob')), 'image/png');
+    mergedCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create merged blob')), 'image/jpeg', 0.85);
   });
   return new Uint8Array(await blob.arrayBuffer());
 }
@@ -64,7 +74,16 @@ export async function extractMergedCropsAsDataUrl(
   
   if (crops.length === 1) {
     const canvas = await pdfManager.renderCrop(crops[0].pageNumber ?? 0, crops[0], scale);
-    return canvas.toDataURL('image/png');
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = canvas.width;
+    finalCanvas.height = canvas.height;
+    const ctx = finalCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      ctx.drawImage(canvas, 0, 0);
+    }
+    return finalCanvas.toDataURL('image/jpeg', 0.85);
   }
 
   // For multiple crops, we can just use the same logic as above
@@ -92,5 +111,5 @@ export async function extractMergedCropsAsDataUrl(
     }
   }
 
-  return mergedCanvas.toDataURL('image/png');
+  return mergedCanvas.toDataURL('image/jpeg', 0.85);
 }

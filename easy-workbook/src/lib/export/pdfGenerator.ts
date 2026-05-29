@@ -178,6 +178,26 @@ export async function generatePdf(
     const totalWeight = pageQuestions.reduce((sum, q) => sum + (q.spaceWeight ?? 1), 0);
     const availableHeight = contentHeight - (pageQuestions.length - 1) * spacing;
 
+    // Pre-extract all images for this page concurrently
+    const preExtractedImages = await Promise.all(
+      pageQuestions.map(async (question) => {
+        let qBytes: Uint8Array | null = null;
+        let aBytes: Uint8Array | null = null;
+        try {
+          qBytes = await extractMergedCrops(question.questionCrops, 3);
+        } catch {}
+        if (
+          (settings.exportType === "answer-key" || settings.exportType === "combined") &&
+          question.answerCrop
+        ) {
+          try {
+            aBytes = await extractMergedCrops([question.answerCrop], 3);
+          } catch {}
+        }
+        return { qBytes, aBytes };
+      })
+    );
+
     let currentTop = contentTop;
 
     for (let qIdx = 0; qIdx < pageQuestions.length; qIdx++) {
@@ -192,13 +212,9 @@ export async function generatePdf(
       onProgress?.(((overallIdx + 1) / total) * 100);
 
       // Extract question image
-      let questionImageBytes: Uint8Array;
-      try {
-        questionImageBytes = await extractMergedCrops(
-          question.questionCrops,
-          3,
-        );
-      } catch {
+      const extracted = preExtractedImages[qIdx];
+      
+      if (!extracted.qBytes) {
         // If extraction fails, draw placeholder
         page.drawText(`[${question.label} — Failed to extract]`, {
           x: margins.left + 10,
@@ -207,11 +223,12 @@ export async function generatePdf(
           font: font,
           color: headerColor,
         });
+        currentTop -= (questionBlockHeight + spacing);
         continue;
       }
 
-      const pngImage = await pdfDoc.embedPng(questionImageBytes);
-      const imgAspect = pngImage.width / pngImage.height;
+      const jpgImage = await pdfDoc.embedJpg(extracted.qBytes);
+      const imgAspect = jpgImage.width / jpgImage.height;
 
       // Apply the user's scale factor so questions have a uniform shape relative to the page
       // Subtract 8 to account for the border padding
@@ -251,7 +268,7 @@ export async function generatePdf(
       });
 
       // Draw question image
-      page.drawImage(pngImage, {
+      page.drawImage(jpgImage, {
         x: startX,
         y: blockTop - imgHeight - 4,
         width: imgWidth,
@@ -281,12 +298,8 @@ export async function generatePdf(
           settings.exportType === "combined") &&
         question.answerCrop
       ) {
-        try {
-          const answerBytes = await extractMergedCrops(
-            [question.answerCrop],
-            3,
-          );
-          const ansImg = await pdfDoc.embedPng(answerBytes);
+        if (extracted.aBytes) {
+          const ansImg = await pdfDoc.embedJpg(extracted.aBytes);
           const ansAspect = ansImg.width / ansImg.height;
           
           // Apply the user's scale factor for answers
@@ -325,8 +338,6 @@ export async function generatePdf(
             width: ansW,
             height: ansH,
           });
-        } catch {
-          // Skip answer if extraction fails
         }
       }
 
