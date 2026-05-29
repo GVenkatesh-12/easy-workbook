@@ -24,7 +24,7 @@ interface QuestionState {
   reorderQuestions: (fromIndex: number, toIndex: number) => void;
   toggleInclude: (id: string) => void;
   setActiveQuestion: (id: string | null) => void;
-  setAnswerCrop: (id: string, crop: CropRegion) => void;
+  setAnswerCrop: (id: string, crop: CropRegion, thumbnail?: string) => void;
   removeAnswerCrop: (id: string) => void;
   setQuestionSpaceWeight: (id: string, weight: number) => void;
   clearAll: () => void;
@@ -114,10 +114,10 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   setActiveQuestion: (id) => set({ activeQuestionId: id }),
 
-  setAnswerCrop: (id, crop) =>
+  setAnswerCrop: (id, crop, thumbnail) =>
     set((state) => ({
       questions: state.questions.map((q) =>
-        q.id === id ? { ...q, answerCrop: crop } : q,
+        q.id === id ? { ...q, answerCrop: crop, answerThumbnail: thumbnail } : q,
       ),
     })),
 

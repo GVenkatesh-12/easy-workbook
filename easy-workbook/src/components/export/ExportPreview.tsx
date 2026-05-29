@@ -16,6 +16,8 @@ export function ExportPreview() {
   const noteStyle = useExportStore((s) => s.noteStyle);
   const themeName = useExportStore((s) => s.theme);
   const questionImageScale = useExportStore((s) => s.questionImageScale);
+  const answerImageScale = useExportStore((s) => s.answerImageScale);
+  const answerPosition = useExportStore((s) => s.answerPosition);
 
   const customPageColor = useExportStore((s) => s.customPageColor);
 
@@ -65,6 +67,8 @@ export function ExportPreview() {
                       exportType={exportType}
                       theme={theme}
                       imageScale={questionImageScale}
+                      answerImageScale={answerImageScale}
+                      answerPosition={answerPosition}
                       onWeightChange={(delta) => {
                         // Delta is a number from -1 to 1 (representing a shift in ratio)
                         // This updates the weights of this question and the NEXT question.
@@ -111,6 +115,8 @@ function QuestionBlock({
   exportType,
   theme,
   imageScale,
+  answerImageScale,
+  answerPosition,
   onWeightChange,
 }: {
   question: Question;
@@ -118,6 +124,8 @@ function QuestionBlock({
   exportType: ExportType;
   theme: ReturnType<typeof getTheme>;
   imageScale: number;
+  answerImageScale: number;
+  answerPosition: 'left' | 'center' | 'right';
   onWeightChange: (delta: number) => void;
 }) {
   const blockRef = useRef<HTMLDivElement>(null);
@@ -210,8 +218,24 @@ function QuestionBlock({
 
         {/* Optional Answer preview */}
         {(exportType === 'combined' || exportType === 'answer-key') && question.answerCrop && (
-          <div className="h-10 border-t border-emerald-500/30 bg-emerald-500/5 flex items-center justify-center text-[9px] text-emerald-600 font-bold uppercase tracking-wider shrink-0 mt-1">
-            Answer Region
+          <div className="border-t border-emerald-500/30 bg-emerald-500/5 mt-1 relative overflow-hidden flex flex-col min-h-[40px] shrink-0 p-2">
+            <div className="absolute top-1 left-2 text-[9px] text-emerald-600 font-bold uppercase tracking-wider z-10">
+              Answer Region
+            </div>
+            {question.answerThumbnail ? (
+              <div 
+                className={`flex w-full pt-3 ${
+                  answerPosition === 'center' ? 'justify-center' :
+                  answerPosition === 'right' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div style={{ width: `${answerImageScale * 100}%` }}>
+                  <img src={question.answerThumbnail} alt="Answer" className="w-full h-auto object-contain object-top" draggable={false} />
+                </div>
+              </div>
+            ) : (
+               <div className="flex-1 flex items-center justify-center text-[9px] text-emerald-600/50 pt-2">Processing...</div>
+            )}
           </div>
         )}
       </div>

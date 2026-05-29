@@ -222,7 +222,14 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
 
     if (isAnswerMode && answerForQuestionId) {
       // Adding an answer region to an existing question
-      setAnswerCrop(answerForQuestionId, { ...normalized, rotation: 0, pageNumber: pageIndex });
+      const crop = { ...normalized, rotation: 0, pageNumber: pageIndex };
+      
+      let answerThumbnail: string | undefined;
+      try {
+        answerThumbnail = await extractMergedCropsAsDataUrl([crop], 1.5);
+      } catch {}
+
+      setAnswerCrop(answerForQuestionId, crop, answerThumbnail);
       addToast('Answer region added', 'success');
       setMode('select'); // Return to select mode
     } else {

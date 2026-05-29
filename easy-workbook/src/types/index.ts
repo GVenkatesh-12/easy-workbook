@@ -17,6 +17,7 @@ export interface Question {
   pageNumber: number; // 0-indexed
   questionCrops: CropRegion[];
   answerCrop?: CropRegion;
+  answerThumbnail?: string; // data URL for answer preview
   label: string; // "Q1", "Q2", etc.
   rotation: number;
   includedInExport: boolean;
