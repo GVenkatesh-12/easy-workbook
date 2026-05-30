@@ -169,9 +169,11 @@ export function Toolbar() {
         </IconButton>
 
         {/* Help Tour Toggle */}
-        <IconButton size="sm" onClick={() => setRunTour(true)} tooltip="How to use">
-          <HelpCircle className="w-4 h-4" />
-        </IconButton>
+        {pdfFile && (
+          <IconButton size="sm" onClick={() => setRunTour(true)} tooltip="How to use">
+            <HelpCircle className="w-4 h-4" />
+          </IconButton>
+        )}
       </div>
     </header>
   );
