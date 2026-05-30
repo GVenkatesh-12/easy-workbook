@@ -341,12 +341,18 @@ export async function generateHtmlPractice(
       cursor: pointer;
       padding: 4px;
     }
-    .calc-iframe {
-      flex: 1;
-      width: 100%;
-      border: none;
-      background: #ffffff; /* The TCS iON calc has a white UI */
-    }
+    .calc-body { flex: 1; display: flex; flex-direction: column; background: #0f0f14; }
+    .calc-display { padding: 24px; text-align: right; border-bottom: 1px solid #27272a; min-height: 140px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .calc-hist { color: #a1a1aa; font-size: 14px; min-height: 20px; margin-bottom: 8px; word-break: break-all; }
+    .calc-input { color: #e4e4e7; font-size: 40px; font-weight: 600; word-break: break-all; }
+    .calc-grid { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #27272a; padding: 1px; }
+    .calc-btn { background: #18181b; border: none; color: #e4e4e7; font-size: 18px; cursor: pointer; transition: background 0.1s; display: flex; align-items: center; justify-content: center; }
+    .calc-btn:hover { background: #27272a; }
+    .calc-btn:active { background: #3f3f46; }
+    .calc-btn.op { color: #a78bfa; background: #18181b; }
+    .calc-btn.sci { color: #818cf8; font-size: 15px; }
+    .calc-btn.eq { background: #8b5cf6; color: white; }
+    .calc-btn.eq:hover { background: #7c3aed; }
     .calc-overlay {
       position: fixed;
       inset: 0;
@@ -433,7 +439,49 @@ export async function generateHtmlPractice(
       <h2>Scientific Calculator</h2>
       <button class="calc-close" onclick="toggleCalculator()">&times;</button>
     </div>
-    <iframe src="https://www.tcsion.com/OnlineAssessment/ScientificCalculator/Calculator.html" class="calc-iframe" title="Scientific Calculator"></iframe>
+    <div class="calc-body">
+      <div class="calc-display">
+        <div class="calc-hist" id="calcHist"></div>
+        <div class="calc-input" id="calcInput">0</div>
+      </div>
+      <div class="calc-grid">
+        <button class="calc-btn sci" onclick="c_ins('sin(')">sin</button>
+        <button class="calc-btn sci" onclick="c_ins('cos(')">cos</button>
+        <button class="calc-btn sci" onclick="c_ins('tan(')">tan</button>
+        <button class="calc-btn sci" onclick="c_ins('log(')">log</button>
+        <button class="calc-btn sci" onclick="c_ins('ln(')">ln</button>
+        
+        <button class="calc-btn sci" onclick="c_ins('(')">(</button>
+        <button class="calc-btn sci" onclick="c_ins(')')">)</button>
+        <button class="calc-btn sci" onclick="c_ins('^')">^</button>
+        <button class="calc-btn op" onclick="c_clr()">C</button>
+        <button class="calc-btn op" onclick="c_del()">DEL</button>
+
+        <button class="calc-btn sci" onclick="c_ins('sqrt(')">√</button>
+        <button class="calc-btn" onclick="c_ins('7')">7</button>
+        <button class="calc-btn" onclick="c_ins('8')">8</button>
+        <button class="calc-btn" onclick="c_ins('9')">9</button>
+        <button class="calc-btn op" onclick="c_ins('/')">÷</button>
+
+        <button class="calc-btn sci" onclick="c_ins('π')">π</button>
+        <button class="calc-btn" onclick="c_ins('4')">4</button>
+        <button class="calc-btn" onclick="c_ins('5')">5</button>
+        <button class="calc-btn" onclick="c_ins('6')">6</button>
+        <button class="calc-btn op" onclick="c_ins('*')">×</button>
+
+        <button class="calc-btn sci" onclick="c_ins('e')">e</button>
+        <button class="calc-btn" onclick="c_ins('1')">1</button>
+        <button class="calc-btn" onclick="c_ins('2')">2</button>
+        <button class="calc-btn" onclick="c_ins('3')">3</button>
+        <button class="calc-btn op" onclick="c_ins('-')">−</button>
+
+        <button class="calc-btn sci" onclick="c_ans()">Ans</button>
+        <button class="calc-btn" onclick="c_ins('0')">0</button>
+        <button class="calc-btn" onclick="c_ins('.')">.</button>
+        <button class="calc-btn eq" onclick="c_eq()">=</button>
+        <button class="calc-btn op" onclick="c_ins('+')">+</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -441,6 +489,65 @@ export async function generateHtmlPractice(
     let timerInterval = null;
     let seconds = 0;
     let currentIndex = 0;
+    
+    let calcExpr = '';
+    let calcError = false;
+    let lastAns = '0';
+
+    function updDisplay() {
+      document.getElementById('calcInput').innerText = calcError ? 'Error' : (calcExpr || '0');
+    }
+
+    function c_ins(val) {
+      if (calcError) { calcExpr = ''; calcError = false; }
+      calcExpr += val;
+      updDisplay();
+    }
+
+    function c_clr() {
+      calcExpr = ''; calcError = false;
+      document.getElementById('calcHist').innerText = '';
+      updDisplay();
+    }
+
+    function c_del() {
+      if (calcError) { c_clr(); return; }
+      calcExpr = calcExpr.slice(0, -1);
+      updDisplay();
+    }
+    
+    function c_ans() {
+      c_ins(lastAns);
+    }
+
+    function c_eq() {
+      if (!calcExpr) return;
+      document.getElementById('calcHist').innerText = calcExpr + ' =';
+      try {
+        let evalExpr = calcExpr
+          .replace(/×/g, '*')
+          .replace(/÷/g, '/')
+          .replace(/π/g, 'Math.PI')
+          .replace(/e/g, 'Math.E')
+          .replace(/sin\\(/g, 'Math.sin(')
+          .replace(/cos\\(/g, 'Math.cos(')
+          .replace(/tan\\(/g, 'Math.tan(')
+          .replace(/log\\(/g, 'Math.log10(')
+          .replace(/ln\\(/g, 'Math.log(')
+          .replace(/sqrt\\(/g, 'Math.sqrt(')
+          .replace(/\\^/g, '**');
+        
+        let res = Function('"use strict";return (' + evalExpr + ')')();
+        if (typeof res === 'number') {
+           res = Math.round(res * 100000000) / 100000000;
+        }
+        calcExpr = String(res);
+        lastAns = calcExpr;
+      } catch (e) {
+        calcError = true;
+      }
+      updDisplay();
+    }
 
     function toggleTimer() {
       const btn = document.getElementById('timerToggle');
@@ -541,11 +648,6 @@ export async function generateHtmlPractice(
       const overlay = document.getElementById('calcOverlay');
       drawer.classList.toggle('open');
       overlay.classList.toggle('open');
-      
-      // Auto focus the iframe if possible (though cross-origin might prevent actual focus, it's good practice)
-      if (drawer.classList.contains('open')) {
-        drawer.querySelector('iframe').focus();
-      }
     }
   </script>
 </body>
