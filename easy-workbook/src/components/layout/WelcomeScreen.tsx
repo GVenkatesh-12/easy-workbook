@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePdfLoader } from '@/hooks/usePdfLoader';
 import { FileText, Scissors, BookOpen } from 'lucide-react';
@@ -11,6 +11,20 @@ export function WelcomeScreen() {
   const { handleFileDrop, handleFileSelect } = usePdfLoader();
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://counter1.optistats.ovh/private/counter.js?c=flh1mmxzjyc7267jdbbguybcuz9cfh1d&down=async';
+    script.async = true;
+    script.type = 'text/javascript';
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -124,6 +138,16 @@ export function WelcomeScreen() {
               <div className="text-xs text-surface-500 mt-1">{tip.desc}</div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Visitor Counter */}
+        <div className="mt-12 flex justify-center pb-4">
+          <div id="sfcflh1mmxzjyc7267jdbbguybcuz9cfh1d"></div>
+          <noscript>
+            <a href="https://www.freecounterstat.com" title="web counter">
+              <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=flh1mmxzjyc7267jdbbguybcuz9cfh1d" style={{ border: 0 }} title="web counter" alt="web counter" />
+            </a>
+          </noscript>
         </div>
       </motion.div>
     </div>
