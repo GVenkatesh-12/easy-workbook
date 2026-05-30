@@ -7,6 +7,7 @@ import { extractMergedCropsAsDataUrl } from './cropExtractor';
  */
 export async function generateHtmlPractice(
   questions: Question[],
+  settings: { invertCropColors?: boolean },
   onProgress?: (progress: number) => void
 ): Promise<string> {
   const included = questions.filter((q) => q.includedInExport);
@@ -21,10 +22,10 @@ export async function generateHtmlPractice(
     const q = included[i];
     onProgress?.(((i + 1) / included.length) * 100);
 
-    const imageUrl = await extractMergedCropsAsDataUrl(q.questionCrops, 2);
+    const imageUrl = await extractMergedCropsAsDataUrl(q.questionCrops, 2, settings.invertCropColors);
     let answerUrl: string | undefined;
     if (q.answerCrops && q.answerCrops.length > 0) {
-      answerUrl = await extractMergedCropsAsDataUrl(q.answerCrops, 2);
+      answerUrl = await extractMergedCropsAsDataUrl(q.answerCrops, 2, settings.invertCropColors);
     }
 
     questionData.push({

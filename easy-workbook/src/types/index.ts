@@ -51,6 +51,7 @@ export interface ExportSettings {
   answerPosition: 'left' | 'center' | 'right'; // Horizontal alignment of answers
   pdfTitle: string; // Custom title for the PDF header
   customPageColor: string; // Hex color for custom background, or empty string to use theme
+  invertCropColors: boolean; // Whether to invert colors of the cropped images
 }
 
 /** Theme color palette */

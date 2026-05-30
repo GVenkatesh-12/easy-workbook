@@ -6,7 +6,8 @@ import type { CropRegion } from '@/types';
  */
 export async function extractMergedCrops(
   crops: CropRegion[],
-  scale = 3
+  scale = 3,
+  invertColors = false
 ): Promise<Uint8Array> {
   if (crops.length === 0) {
     throw new Error('No crops provided for extraction');
@@ -24,9 +25,11 @@ export async function extractMergedCrops(
     finalCanvas.height = canvas.height;
     const ctx = finalCanvas.getContext('2d');
     if (ctx) {
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = invertColors ? '#18181b' : 'white'; // Use a dark gray/off-black for better contrast
       ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      if (invertColors) ctx.filter = 'invert(1) hue-rotate(180deg)';
       ctx.drawImage(canvas, 0, 0);
+      if (invertColors) ctx.filter = 'none';
     }
     const blob = await new Promise<Blob>((resolve, reject) => {
       finalCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/jpeg', 0.85);
@@ -44,9 +47,11 @@ export async function extractMergedCrops(
   const ctx = mergedCanvas.getContext('2d');
 
   if (ctx) {
-    // Fill with white background
-    ctx.fillStyle = 'white';
+    // Fill with background
+    ctx.fillStyle = invertColors ? '#18181b' : 'white';
     ctx.fillRect(0, 0, maxWidth, totalHeight);
+
+    if (invertColors) ctx.filter = 'invert(1) hue-rotate(180deg)';
 
     let currentY = 0;
     for (const c of canvases) {
@@ -55,6 +60,8 @@ export async function extractMergedCrops(
       ctx.drawImage(c, dx, currentY);
       currentY += c.height;
     }
+
+    if (invertColors) ctx.filter = 'none';
   }
 
   const blob = await new Promise<Blob>((resolve, reject) => {
@@ -68,7 +75,8 @@ export async function extractMergedCrops(
  */
 export async function extractMergedCropsAsDataUrl(
   crops: CropRegion[],
-  scale = 2
+  scale = 2,
+  invertColors = false
 ): Promise<string> {
   if (crops.length === 0) return '';
   
@@ -79,9 +87,11 @@ export async function extractMergedCropsAsDataUrl(
     finalCanvas.height = canvas.height;
     const ctx = finalCanvas.getContext('2d');
     if (ctx) {
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = invertColors ? '#18181b' : 'white';
       ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      if (invertColors) ctx.filter = 'invert(1) hue-rotate(180deg)';
       ctx.drawImage(canvas, 0, 0);
+      if (invertColors) ctx.filter = 'none';
     }
     return finalCanvas.toDataURL('image/jpeg', 0.85);
   }
@@ -100,8 +110,10 @@ export async function extractMergedCropsAsDataUrl(
   const ctx = mergedCanvas.getContext('2d');
 
   if (ctx) {
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = invertColors ? '#18181b' : 'white';
     ctx.fillRect(0, 0, maxWidth, totalHeight);
+
+    if (invertColors) ctx.filter = 'invert(1) hue-rotate(180deg)';
 
     let currentY = 0;
     for (const c of canvases) {
@@ -109,6 +121,8 @@ export async function extractMergedCropsAsDataUrl(
       ctx.drawImage(c, dx, currentY);
       currentY += c.height;
     }
+
+    if (invertColors) ctx.filter = 'none';
   }
 
   return mergedCanvas.toDataURL('image/jpeg', 0.85);

@@ -58,7 +58,8 @@ export function ExportDialog() {
         downloadPdf(bytes, `easy-workbook-${Date.now()}.pdf`);
         addToast('PDF exported successfully!', 'success');
       } else {
-        const html = await generateHtmlPractice(includedQuestions, setProgress);
+        const settings = store.getSettings();
+        const html = await generateHtmlPractice(includedQuestions, settings, setProgress);
         downloadHtml(html, `easy-workbook-practice-${Date.now()}.html`);
         addToast('HTML practice sheet exported!', 'success');
       }
@@ -302,6 +303,32 @@ export function ExportDialog() {
                         )}
                       </div>
                     </div>
+                  </div>
+
+                  {/* Invert Crop Colors */}
+                  <div className="mt-4 pt-4 border-t border-surface-700 flex items-center justify-between">
+                    <div>
+                      <label className="text-xs font-bold text-surface-300 uppercase tracking-widest block mb-1">
+                        Invert Crop Colors
+                      </label>
+                      <p className="text-[11px] text-surface-500">
+                        Invert the colors of cropped images (great for dark mode themes).
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => store.setInvertCropColors(!store.invertCropColors)}
+                      className={`relative w-11 h-6 rounded-full flex items-center p-1 transition-all duration-300 ease-in-out shrink-0 outline-none ring-2 ring-transparent focus-visible:ring-brand-500 ${
+                        store.invertCropColors 
+                          ? 'bg-brand-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]' 
+                          : 'bg-surface-700 border border-surface-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]'
+                      }`}
+                    >
+                      <span
+                        className={`block w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm border border-black/10 ${
+                          store.invertCropColors ? 'translate-x-5 shadow-[0_2px_5px_rgba(0,0,0,0.3)] scale-110' : 'translate-x-0 opacity-80'
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
 

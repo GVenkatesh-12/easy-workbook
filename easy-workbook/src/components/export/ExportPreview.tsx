@@ -21,6 +21,7 @@ export function ExportPreview() {
   const answerPosition = useExportStore((s) => s.answerPosition);
 
   const customPageColor = useExportStore((s) => s.customPageColor);
+  const invertCropColors = useExportStore((s) => s.invertCropColors);
 
   const theme = getTheme(themeName);
   const bgColor = customPageColor || theme.background;
@@ -70,6 +71,7 @@ export function ExportPreview() {
                       imageScale={questionImageScale}
                       answerImageScale={answerImageScale}
                       answerPosition={answerPosition}
+                      invertCropColors={invertCropColors}
                       onWeightChange={(delta) => {
                         // Delta is a number from -1 to 1 (representing a shift in ratio)
                         // This updates the weights of this question and the NEXT question.
@@ -118,6 +120,7 @@ function QuestionBlock({
   imageScale,
   answerImageScale,
   answerPosition,
+  invertCropColors,
   onWeightChange,
 }: {
   question: Question;
@@ -127,6 +130,7 @@ function QuestionBlock({
   imageScale: number;
   answerImageScale: number;
   answerPosition: 'left' | 'center' | 'right';
+  invertCropColors: boolean;
   onWeightChange: (delta: number) => void;
 }) {
   const blockRef = useRef<HTMLDivElement>(null);
@@ -203,6 +207,7 @@ function QuestionBlock({
               src={question.thumbnail} 
               alt={question.label}
               className="w-full h-full object-contain object-top"
+              style={{ filter: invertCropColors ? 'invert(1) hue-rotate(180deg)' : 'none' }}
               draggable={false}
             />
           ) : (
@@ -231,7 +236,13 @@ function QuestionBlock({
                 }`}
               >
                 <div style={{ width: `${answerImageScale * 100}%` }}>
-                  <img src={question.answerThumbnail} alt="Answer" className="w-full h-auto object-contain object-top" draggable={false} />
+                  <img 
+                    src={question.answerThumbnail} 
+                    alt="Answer" 
+                    className="w-full h-auto object-contain object-top" 
+                    style={{ filter: invertCropColors ? 'invert(1) hue-rotate(180deg)' : 'none' }}
+                    draggable={false} 
+                  />
                 </div>
               </div>
             ) : (

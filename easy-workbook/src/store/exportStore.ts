@@ -22,6 +22,7 @@ interface ExportState extends ExportSettings {
   setPreviewMode: (preview: boolean) => void;
   setPdfTitle: (title: string) => void;
   setCustomPageColor: (color: string) => void;
+  setInvertCropColors: (invert: boolean) => void;
   resetDefaults: () => void;
   getSettings: () => ExportSettings;
 }
@@ -42,6 +43,7 @@ const DEFAULT_SETTINGS: ExportSettings = {
   answerPosition: 'left',
   pdfTitle: 'Easy Workbook',
   customPageColor: '',
+  invertCropColors: false,
 };
 
 export const useExportStore = create<ExportState>((set, get) => ({
@@ -65,6 +67,7 @@ export const useExportStore = create<ExportState>((set, get) => ({
   setAnswerPosition: (answerPosition) => set({ answerPosition }),
   setPdfTitle: (pdfTitle) => set({ pdfTitle }),
   setCustomPageColor: (customPageColor) => set({ customPageColor }),
+  setInvertCropColors: (invertCropColors) => set({ invertCropColors }),
   setPreviewMode: (previewMode) => set({ previewMode }),
   
   resetDefaults: () => set({ ...DEFAULT_SETTINGS }),
@@ -87,6 +90,7 @@ export const useExportStore = create<ExportState>((set, get) => ({
       answerPosition: state.answerPosition,
       pdfTitle: state.pdfTitle,
       customPageColor: state.customPageColor,
+      invertCropColors: state.invertCropColors,
     };
   },
 }));

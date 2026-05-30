@@ -184,14 +184,14 @@ export async function generatePdf(
         let qBytes: Uint8Array | null = null;
         let aBytes: Uint8Array | null = null;
         try {
-          qBytes = await extractMergedCrops(question.questionCrops, 3);
+          qBytes = await extractMergedCrops(question.questionCrops, 3, settings.invertCropColors);
         } catch {}
         if (
           (settings.exportType === "answer-key" || settings.exportType === "combined") &&
           question.answerCrops && question.answerCrops.length > 0
         ) {
           try {
-            aBytes = await extractMergedCrops(question.answerCrops, 3);
+            aBytes = await extractMergedCrops(question.answerCrops, 3, settings.invertCropColors);
           } catch {}
         }
         return { qBytes, aBytes };
