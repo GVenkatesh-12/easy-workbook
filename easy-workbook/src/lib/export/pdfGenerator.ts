@@ -188,10 +188,10 @@ export async function generatePdf(
         } catch {}
         if (
           (settings.exportType === "answer-key" || settings.exportType === "combined") &&
-          question.answerCrop
+          question.answerCrops && question.answerCrops.length > 0
         ) {
           try {
-            aBytes = await extractMergedCrops([question.answerCrop], 3);
+            aBytes = await extractMergedCrops(question.answerCrops, 3);
           } catch {}
         }
         return { qBytes, aBytes };
@@ -292,11 +292,10 @@ export async function generatePdf(
         });
       }
 
-      // Answer (if included)
       if (
         (settings.exportType === "answer-key" ||
           settings.exportType === "combined") &&
-        question.answerCrop
+        question.answerCrops && question.answerCrops.length > 0
       ) {
         if (extracted.aBytes) {
           const ansImg = await pdfDoc.embedJpg(extracted.aBytes);

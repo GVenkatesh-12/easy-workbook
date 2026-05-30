@@ -218,7 +218,7 @@ function QuestionBlock({
         )}
 
         {/* Optional Answer preview */}
-        {(exportType === 'combined' || exportType === 'answer-key') && question.answerCrop && (
+        {(exportType === 'combined' || exportType === 'answer-key') && question.answerCrops && question.answerCrops.length > 0 && (
           <div className="border-t border-emerald-500/30 bg-emerald-500/5 mt-1 relative overflow-hidden flex flex-col min-h-[40px] shrink-0 p-2">
             <div className="absolute top-1 left-2 text-[9px] text-emerald-600 font-bold uppercase tracking-wider z-10">
               Answer Region

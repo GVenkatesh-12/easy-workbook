@@ -23,8 +23,8 @@ export async function generateHtmlPractice(
 
     const imageUrl = await extractMergedCropsAsDataUrl(q.questionCrops, 2);
     let answerUrl: string | undefined;
-    if (q.answerCrop) {
-      answerUrl = await extractMergedCropsAsDataUrl([q.answerCrop], 2);
+    if (q.answerCrops && q.answerCrops.length > 0) {
+      answerUrl = await extractMergedCropsAsDataUrl(q.answerCrops, 2);
     }
 
     questionData.push({

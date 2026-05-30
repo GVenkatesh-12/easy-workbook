@@ -7,25 +7,28 @@ interface QuestionState {
   activeQuestionId: string | null;
 
   pendingQuestionCrops: CropRegion[];
+  pendingAnswerCrops: CropRegion[];
 
   // Actions
   addQuestion: (params: {
     sourcePdfName: string;
     pageNumber: number;
     questionCrops: CropRegion[];
-    answerCrop?: CropRegion;
+    answerCrops?: CropRegion[];
     thumbnail?: string;
   }) => string; // returns new question ID
   addPendingCrop: (crop: CropRegion) => void;
   clearPendingCrops: () => void;
+  addPendingAnswerCrop: (crop: CropRegion) => void;
+  clearPendingAnswerCrops: () => void;
   removeQuestion: (id: string) => void;
   updateQuestion: (id: string, updates: Partial<Question>) => void;
   duplicateQuestion: (id: string) => void;
   reorderQuestions: (fromIndex: number, toIndex: number) => void;
   toggleInclude: (id: string) => void;
   setActiveQuestion: (id: string | null) => void;
-  setAnswerCrop: (id: string, crop: CropRegion, thumbnail?: string) => void;
-  removeAnswerCrop: (id: string) => void;
+  setAnswerCrops: (id: string, crops: CropRegion[], thumbnail?: string) => void;
+  removeAnswerCrops: (id: string) => void;
   setQuestionSpaceWeight: (id: string, weight: number) => void;
   clearAll: () => void;
   getIncludedQuestions: () => Question[];
@@ -38,10 +41,13 @@ const reindexLabels = (questions: Question[]): Question[] => {
 export const useQuestionStore = create<QuestionState>((set, get) => ({
   questions: [],
   pendingQuestionCrops: [],
+  pendingAnswerCrops: [],
   activeQuestionId: null,
 
   addPendingCrop: (crop) => set((state) => ({ pendingQuestionCrops: [...state.pendingQuestionCrops, crop] })),
   clearPendingCrops: () => set({ pendingQuestionCrops: [] }),
+  addPendingAnswerCrop: (crop) => set((state) => ({ pendingAnswerCrops: [...state.pendingAnswerCrops, crop] })),
+  clearPendingAnswerCrops: () => set({ pendingAnswerCrops: [] }),
 
   addQuestion: (params) => {
     const id = uuidv4();
@@ -50,7 +56,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       sourcePdfName: params.sourcePdfName,
       pageNumber: params.pageNumber,
       questionCrops: params.questionCrops,
-      answerCrop: params.answerCrop,
+      answerCrops: params.answerCrops,
       label: "", // Will be set by reindexLabels
       rotation: 0,
       includedInExport: true,
@@ -114,17 +120,17 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
 
   setActiveQuestion: (id) => set({ activeQuestionId: id }),
 
-  setAnswerCrop: (id, crop, thumbnail) =>
+  setAnswerCrops: (id, crops, thumbnail) =>
     set((state) => ({
       questions: state.questions.map((q) =>
-        q.id === id ? { ...q, answerCrop: crop, answerThumbnail: thumbnail } : q,
+        q.id === id ? { ...q, answerCrops: crops, answerThumbnail: thumbnail } : q,
       ),
     })),
 
-  removeAnswerCrop: (id) =>
+  removeAnswerCrops: (id) =>
     set((state) => ({
       questions: state.questions.map((q) =>
-        q.id === id ? { ...q, answerCrop: undefined } : q,
+        q.id === id ? { ...q, answerCrops: undefined } : q,
       ),
     })),
 
@@ -135,7 +141,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       ),
     })),
 
-  clearAll: () => set({ questions: [], activeQuestionId: null, pendingQuestionCrops: [] }),
+  clearAll: () => set({ questions: [], activeQuestionId: null, pendingQuestionCrops: [], pendingAnswerCrops: [] }),
 
   getIncludedQuestions: () => get().questions.filter((q) => q.includedInExport),
 }));

@@ -42,11 +42,14 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const setMode = useUiStore((s) => s.setMode);
   const addQuestion = useQuestionStore((s) => s.addQuestion);
   const setActiveQuestion = useQuestionStore((s) => s.setActiveQuestion);
-  const setAnswerCrop = useQuestionStore((s) => s.setAnswerCrop);
+  const setAnswerCrops = useQuestionStore((s) => s.setAnswerCrops);
   const questions = useQuestionStore((s) => s.questions);
   const pendingQuestionCrops = useQuestionStore((s) => s.pendingQuestionCrops);
   const addPendingCrop = useQuestionStore((s) => s.addPendingCrop);
   const clearPendingCrops = useQuestionStore((s) => s.clearPendingCrops);
+  const pendingAnswerCrops = useQuestionStore((s) => s.pendingAnswerCrops);
+  const addPendingAnswerCrop = useQuestionStore((s) => s.addPendingAnswerCrop);
+  const clearPendingAnswerCrops = useQuestionStore((s) => s.clearPendingAnswerCrops);
   const pdfFile = usePdfStore((s) => s.pdfFile);
   const addToast = useUiStore((s) => s.addToast);
   const { generateThumbnail } = useThumbnail();
@@ -74,7 +77,7 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   );
   
   // Answers on this page
-  const pageAnswers = questions.filter((q) => q.answerCrop && (q.answerCrop.pageNumber ?? q.pageNumber) === pageIndex);
+  const pageAnswers = questions.filter((q) => q.answerCrops && q.answerCrops.some(crop => (crop.pageNumber ?? q.pageNumber) === pageIndex));
 
   // Attach transformer to pending rect when in adjusting phase
   useEffect(() => {
@@ -182,7 +185,11 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       return;
     }
 
-    addPendingCrop({ ...normalized, rotation: 0, pageNumber: pageIndex });
+    if (isAnswerMode) {
+      addPendingAnswerCrop({ ...normalized, rotation: 0, pageNumber: pageIndex });
+    } else {
+      addPendingCrop({ ...normalized, rotation: 0, pageNumber: pageIndex });
+    }
     addToast('Part added. Select the next part.', 'info');
     
     // Reset local drawing state to allow another selection
@@ -190,7 +197,7 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
     setDrawingRect(null);
     setPhase('idle');
     startPointRef.current = null;
-  }, [pendingRect, width, height, pageIndex, addPendingCrop, addToast]);
+  }, [pendingRect, width, height, pageIndex, addPendingCrop, addPendingAnswerCrop, isAnswerMode, addToast]);
 
   // ─── Confirm / Cancel ───
 
@@ -222,14 +229,15 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
 
     if (isAnswerMode && answerForQuestionId) {
       // Adding an answer region to an existing question
-      const crop = { ...normalized, rotation: 0, pageNumber: pageIndex };
+      const finalCrop = { ...normalized, rotation: 0, pageNumber: pageIndex };
+      const allAnswerCrops = [...pendingAnswerCrops, finalCrop];
       
       let answerThumbnail: string | undefined;
       try {
-        answerThumbnail = await extractMergedCropsAsDataUrl([crop], 1.5);
+        answerThumbnail = await extractMergedCropsAsDataUrl(allAnswerCrops, 1.5);
       } catch {}
 
-      setAnswerCrop(answerForQuestionId, crop, answerThumbnail);
+      setAnswerCrops(answerForQuestionId, allAnswerCrops, answerThumbnail);
       addToast('Answer region added', 'success');
       setMode('select'); // Return to select mode
     } else {
@@ -260,7 +268,8 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
     setPendingRect(null);
     setPhase('idle');
     clearPendingCrops();
-  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrop, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail, pendingQuestionCrops, clearPendingCrops]);
+    clearPendingAnswerCrops();
+  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrops, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail, pendingQuestionCrops, clearPendingCrops, pendingAnswerCrops, clearPendingAnswerCrops]);
 
   const handleCancel = useCallback(() => {
     setPendingRect(null);
@@ -268,10 +277,11 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
     setPhase('idle');
     startPointRef.current = null;
     clearPendingCrops();
+    clearPendingAnswerCrops();
     if (isAnswerMode) {
       setMode('select');
     }
-  }, [isAnswerMode, setMode, clearPendingCrops]);
+  }, [isAnswerMode, setMode, clearPendingCrops, clearPendingAnswerCrops]);
 
   // ─── Keyboard shortcuts ───
   useEffect(() => {
@@ -404,35 +414,36 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
             );
           })}
 
-          {/* ── Answers on this page ── */}
-          {pageAnswers.map((q) => {
-            const ansRect = normalizedRectToStage(q.answerCrop!, width, height);
+          {/* ── Pending multi-part answers on this page ── */}
+          {pendingAnswerCrops.map((crop, idx) => {
+            if ((crop.pageNumber ?? pageIndex) !== pageIndex) return null;
+            const rect = normalizedRectToStage(crop, width, height);
             return (
-              <Group key={`ans-${q.id}`}>
+              <Group key={`pending-ans-${idx}`}>
                 <Rect
-                  x={ansRect.x}
-                  y={ansRect.y}
-                  width={ansRect.width}
-                  height={ansRect.height}
-                  fill="rgba(34, 197, 94, 0.10)"
+                  x={rect.x}
+                  y={rect.y}
+                  width={rect.width}
+                  height={rect.height}
+                  fill="rgba(34, 197, 94, 0.12)"
                   stroke="#22c55e"
                   strokeWidth={2}
-                  cornerRadius={3}
                   dash={[6, 4]}
+                  cornerRadius={3}
                 />
                 <Rect
-                  x={ansRect.x}
-                  y={ansRect.y - 22}
-                  width={Math.max(64, q.label.length * 10 + 30)}
-                  height={22}
+                  x={rect.x}
+                  y={rect.y - 24}
+                  width={100}
+                  height={24}
                   fill="#22c55e"
                   cornerRadius={[6, 6, 0, 0]}
                 />
                 <Text
-                  x={ansRect.x + 6}
-                  y={ansRect.y - 18}
-                  text={`${q.label} Ans`}
-                  fontSize={10}
+                  x={rect.x + 8}
+                  y={rect.y - 19}
+                  text={`Ans Part ${idx + 1}`}
+                  fontSize={12}
                   fontFamily="Inter, sans-serif"
                   fontStyle="600"
                   fill="white"
@@ -440,6 +451,48 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
               </Group>
             );
           })}
+
+          {/* ── Answers on this page ── */}
+          {pageAnswers.map((q) => (
+            <Group key={`ans-${q.id}`}>
+              {q.answerCrops!.map((crop, idx) => {
+                if ((crop.pageNumber ?? q.pageNumber) !== pageIndex) return null;
+                const ansRect = normalizedRectToStage(crop, width, height);
+                return (
+                  <Group key={`ans-${q.id}-part-${idx}`}>
+                    <Rect
+                      x={ansRect.x}
+                      y={ansRect.y}
+                      width={ansRect.width}
+                      height={ansRect.height}
+                      fill="rgba(34, 197, 94, 0.10)"
+                      stroke="#22c55e"
+                      strokeWidth={2}
+                      cornerRadius={3}
+                      dash={[6, 4]}
+                    />
+                    <Rect
+                      x={ansRect.x}
+                      y={ansRect.y - 22}
+                      width={Math.max(64, (q.label.length + (q.answerCrops!.length > 1 ? 8 : 0)) * 10 + 30)}
+                      height={22}
+                      fill="#22c55e"
+                      cornerRadius={[6, 6, 0, 0]}
+                    />
+                    <Text
+                      x={ansRect.x + 6}
+                      y={ansRect.y - 18}
+                      text={q.answerCrops!.length > 1 ? `${q.label} Ans (pt ${idx + 1})` : `${q.label} Ans`}
+                      fontSize={10}
+                      fontFamily="Inter, sans-serif"
+                      fontStyle="600"
+                      fill="white"
+                    />
+                  </Group>
+                );
+              })}
+            </Group>
+          ))}
 
           {/* ── Currently drawing rect (phase: drawing) ── */}
           {drawingRect && phase === 'drawing' && (
@@ -525,20 +578,18 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
             </svg>
             {isAnswerMode ? 'Add Ans' : 'Confirm'}
           </button>
-          {!isAnswerMode && (
-            <button
-              onClick={handleAddPart}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg
-                bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold
-                shadow-lg shadow-amber-500/30 transition-all active:scale-95"
-              title="Add another part to this question (e.g. on next page)"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              Add Part
-            </button>
-          )}
+          <button
+            onClick={handleAddPart}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg
+              bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold
+              shadow-lg shadow-amber-500/30 transition-all active:scale-95"
+            title="Add another part to this question (e.g. on next page)"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Part
+          </button>
           <button
             onClick={handleCancel}
             className="flex items-center justify-center w-8 h-8 rounded-lg

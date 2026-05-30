@@ -151,7 +151,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
   const duplicateQuestion = useQuestionStore((s) => s.duplicateQuestion);
   const toggleInclude = useQuestionStore((s) => s.toggleInclude);
   const setActiveQuestion = useQuestionStore((s) => s.setActiveQuestion);
-  const removeAnswerCrop = useQuestionStore((s) => s.removeAnswerCrop);
+  const removeAnswerCrops = useQuestionStore((s) => s.removeAnswerCrops);
   const setMode = useUiStore((s) => s.setMode);
 
   const style = {
@@ -167,7 +167,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
   };
 
   const handleRemoveAnswer = () => {
-    removeAnswerCrop(question.id);
+    removeAnswerCrops(question.id);
   };
 
   return (
@@ -217,7 +217,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
             <span className="text-[11px] text-surface-500">
               p.{question.pageNumber + 1}
             </span>
-            {question.answerCrop && (
+            {question.answerCrops && question.answerCrops.length > 0 && (
               <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-bold uppercase tracking-wider">
                 Ans ✓
               </span>
@@ -232,7 +232,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
       {/* Action bar — always visible for touch, hover-reveal on desktop */}
       <div className="flex items-center gap-1.5 border-t border-surface-700/40 px-2.5 py-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 bg-surface-900/30 rounded-b-lg">
         {/* Add / Remove Answer */}
-        {question.answerCrop ? (
+        {question.answerCrops && question.answerCrops.length > 0 ? (
           <button
             onClick={handleRemoveAnswer}
             className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10 transition-colors"
