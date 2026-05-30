@@ -232,7 +232,7 @@ export async function generatePdf(
 
       // Apply the user's scale factor so questions have a uniform shape relative to the page
       // Subtract 8 to account for the border padding
-      let imgWidth = (contentWidth - 8) * (settings.questionImageScale ?? 1.0);
+      let imgWidth = (contentWidth - 8) * (settings.questionImageScale ?? 0.5);
       let imgHeight = imgWidth / imgAspect;
 
       // Ensure it does not overflow the block height (leaving a tiny margin for border)
@@ -303,7 +303,7 @@ export async function generatePdf(
           const ansAspect = ansImg.width / ansImg.height;
           
           // Apply the user's scale factor for answers
-          let ansW = contentWidth * (settings.answerImageScale ?? 1.0);
+          let ansW = contentWidth * (settings.answerImageScale ?? 0.5);
           let ansH = ansW / ansAspect;
           
           // Ensure it does not overflow the block height
