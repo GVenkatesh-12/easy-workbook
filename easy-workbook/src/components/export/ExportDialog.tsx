@@ -330,6 +330,40 @@ export function ExportDialog() {
                       />
                     </button>
                   </div>
+
+                  {/* Remove Background (Beta) */}
+                  <div className="mt-4 pt-4 border-t border-surface-700 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <label className="text-xs font-bold text-surface-300 uppercase tracking-widest block">
+                          Remove Background
+                        </label>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                          BETA
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-surface-500 max-w-sm">
+                        Use AI to make crop backgrounds transparent. 
+                        <span className="text-amber-400/80 ml-1 block mt-1">
+                          ⚠️ Runs a heavy in-browser AI model. Requires a good CPU for fast results. First export may take ~30s to download the model.
+                        </span>
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => store.setRemoveBackground(!store.removeBackground)}
+                      className={`relative w-11 h-6 rounded-full flex items-center p-1 transition-all duration-300 ease-in-out shrink-0 outline-none ring-2 ring-transparent focus-visible:ring-amber-500 ${
+                        store.removeBackground 
+                          ? 'bg-amber-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)]' 
+                          : 'bg-surface-700 border border-surface-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]'
+                      }`}
+                    >
+                      <span
+                        className={`block w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm border border-black/10 ${
+                          store.removeBackground ? 'translate-x-5 shadow-[0_2px_5px_rgba(0,0,0,0.3)] scale-110' : 'translate-x-0 opacity-80'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Note Style */}

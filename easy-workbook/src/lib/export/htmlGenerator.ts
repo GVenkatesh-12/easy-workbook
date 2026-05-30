@@ -7,7 +7,7 @@ import { extractMergedCropsAsDataUrl } from './cropExtractor';
  */
 export async function generateHtmlPractice(
   questions: Question[],
-  settings: { invertCropColors?: boolean },
+  settings: { invertCropColors?: boolean; removeBackground?: boolean },
   onProgress?: (progress: number) => void
 ): Promise<string> {
   const included = questions.filter((q) => q.includedInExport);
@@ -19,13 +19,16 @@ export async function generateHtmlPractice(
   }> = [];
 
   for (let i = 0; i < included.length; i++) {
+    // Yield to the main thread so the browser can update the UI and progress bar
+    await new Promise(r => setTimeout(r, 50));
+
     const q = included[i];
     onProgress?.(((i + 1) / included.length) * 100);
 
-    const imageUrl = await extractMergedCropsAsDataUrl(q.questionCrops, 2, settings.invertCropColors);
+    const imageUrl = await extractMergedCropsAsDataUrl(q.questionCrops, 2, settings.invertCropColors, settings.removeBackground, '#0f0f14');
     let answerUrl: string | undefined;
     if (q.answerCrops && q.answerCrops.length > 0) {
-      answerUrl = await extractMergedCropsAsDataUrl(q.answerCrops, 2, settings.invertCropColors);
+      answerUrl = await extractMergedCropsAsDataUrl(q.answerCrops, 2, settings.invertCropColors, settings.removeBackground, '#0f0f14');
     }
 
     questionData.push({

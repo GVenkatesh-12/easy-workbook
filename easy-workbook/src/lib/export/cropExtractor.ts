@@ -7,7 +7,9 @@ import type { CropRegion } from '@/types';
 export async function extractMergedCrops(
   crops: CropRegion[],
   scale = 3,
-  invertColors = false
+  invertColors = false,
+  removeBackgroundFlag = false,
+  bgColor = '#ffffff'
 ): Promise<Uint8Array> {
   if (crops.length === 0) {
     throw new Error('No crops provided for extraction');
@@ -29,11 +31,53 @@ export async function extractMergedCrops(
       ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
       if (invertColors) ctx.filter = 'invert(1) hue-rotate(180deg)';
       ctx.drawImage(canvas, 0, 0);
+
       if (invertColors) ctx.filter = 'none';
     }
     const blob = await new Promise<Blob>((resolve, reject) => {
-      finalCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/jpeg', 0.85);
+      finalCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/png');
     });
+    
+    if (removeBackgroundFlag) {
+      try {
+        const bgConfig: any = {
+          model: 'medium',
+          progress: (key: string, current: number, total: number) => {
+            console.log(`[AI Model] ${key}: ${Math.round((current / total) * 100)}%`);
+          }
+        };
+        const { removeBackground } = await import('@imgly/background-removal');
+        const transparentBlob = await removeBackground(blob, bgConfig);
+        
+        const img = new Image();
+        const objUrl = URL.createObjectURL(transparentBlob);
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = objUrl;
+        });
+        
+        const flatCanvas = document.createElement('canvas');
+        flatCanvas.width = img.width;
+        flatCanvas.height = img.height;
+        const flatCtx = flatCanvas.getContext('2d');
+        if (flatCtx) {
+          flatCtx.fillStyle = bgColor;
+          flatCtx.fillRect(0, 0, flatCanvas.width, flatCanvas.height);
+          flatCtx.drawImage(img, 0, 0);
+        }
+        URL.revokeObjectURL(objUrl);
+        
+        const flatBlob = await new Promise<Blob>((resolve, reject) => {
+          flatCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to flatten blob')), 'image/jpeg', 0.85);
+        });
+        
+        return new Uint8Array(await flatBlob.arrayBuffer());
+      } catch (err) {
+        console.error("Background removal failed:", err);
+      }
+    }
+    
     return new Uint8Array(await blob.arrayBuffer());
   }
 
@@ -58,6 +102,7 @@ export async function extractMergedCrops(
       // Center each part horizontally
       const dx = (maxWidth - c.width) / 2;
       ctx.drawImage(c, dx, currentY);
+
       currentY += c.height;
     }
 
@@ -65,8 +110,49 @@ export async function extractMergedCrops(
   }
 
   const blob = await new Promise<Blob>((resolve, reject) => {
-    mergedCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create merged blob')), 'image/jpeg', 0.85);
+    mergedCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create merged blob')), 'image/png');
   });
+
+  if (removeBackgroundFlag) {
+    try {
+      const bgConfig: any = {
+        model: 'medium',
+        progress: (key: string, current: number, total: number) => {
+          console.log(`[AI Model] ${key}: ${Math.round((current / total) * 100)}%`);
+        }
+      };
+      const { removeBackground } = await import('@imgly/background-removal');
+      const transparentBlob = await removeBackground(blob, bgConfig);
+      
+      const img = new Image();
+      const objUrl = URL.createObjectURL(transparentBlob);
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = objUrl;
+      });
+      
+      const flatCanvas = document.createElement('canvas');
+      flatCanvas.width = img.width;
+      flatCanvas.height = img.height;
+      const flatCtx = flatCanvas.getContext('2d');
+      if (flatCtx) {
+        flatCtx.fillStyle = bgColor;
+        flatCtx.fillRect(0, 0, flatCanvas.width, flatCanvas.height);
+        flatCtx.drawImage(img, 0, 0);
+      }
+      URL.revokeObjectURL(objUrl);
+      
+      const flatBlob = await new Promise<Blob>((resolve, reject) => {
+        flatCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to flatten blob')), 'image/jpeg', 0.85);
+      });
+      
+      return new Uint8Array(await flatBlob.arrayBuffer());
+    } catch (err) {
+      console.error("Background removal failed:", err);
+    }
+  }
+
   return new Uint8Array(await blob.arrayBuffer());
 }
 
@@ -76,7 +162,9 @@ export async function extractMergedCrops(
 export async function extractMergedCropsAsDataUrl(
   crops: CropRegion[],
   scale = 2,
-  invertColors = false
+  invertColors = false,
+  removeBackgroundFlag = false,
+  bgColor = '#ffffff'
 ): Promise<string> {
   if (crops.length === 0) return '';
   
@@ -91,7 +179,52 @@ export async function extractMergedCropsAsDataUrl(
       ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
       if (invertColors) ctx.filter = 'invert(1) hue-rotate(180deg)';
       ctx.drawImage(canvas, 0, 0);
+
       if (invertColors) ctx.filter = 'none';
+    }
+    if (removeBackgroundFlag) {
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        finalCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/png');
+      });
+      try {
+        const bgConfig: any = {
+          model: 'medium',
+          progress: (key: string, current: number, total: number) => {
+            console.log(`[AI Model] ${key}: ${Math.round((current / total) * 100)}%`);
+          }
+        };
+        const { removeBackground } = await import('@imgly/background-removal');
+        const transparentBlob = await removeBackground(blob, bgConfig);
+        
+        const img = new Image();
+        const objUrl = URL.createObjectURL(transparentBlob);
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = objUrl;
+        });
+        
+        const flatCanvas = document.createElement('canvas');
+        flatCanvas.width = img.width;
+        flatCanvas.height = img.height;
+        const flatCtx = flatCanvas.getContext('2d');
+        if (flatCtx) {
+          flatCtx.fillStyle = bgColor;
+          flatCtx.fillRect(0, 0, flatCanvas.width, flatCanvas.height);
+          flatCtx.drawImage(img, 0, 0);
+        }
+        URL.revokeObjectURL(objUrl);
+        
+        const flatBlob = await new Promise<Blob>((resolve, reject) => {
+          flatCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to flatten blob')), 'image/jpeg', 0.85);
+        });
+        
+        const buffer = await flatBlob.arrayBuffer();
+        const base64 = btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+        return `data:image/jpeg;base64,${base64}`;
+      } catch (err) {
+        console.error("Background removal failed:", err);
+      }
     }
     return finalCanvas.toDataURL('image/jpeg', 0.85);
   }
@@ -119,10 +252,56 @@ export async function extractMergedCropsAsDataUrl(
     for (const c of canvases) {
       const dx = (maxWidth - c.width) / 2;
       ctx.drawImage(c, dx, currentY);
+
       currentY += c.height;
     }
 
     if (invertColors) ctx.filter = 'none';
+  }
+
+  if (removeBackgroundFlag) {
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      mergedCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to create blob')), 'image/png');
+    });
+    try {
+      const bgConfig: any = {
+        model: 'medium',
+        progress: (key: string, current: number, total: number) => {
+          console.log(`[AI Model] ${key}: ${Math.round((current / total) * 100)}%`);
+        }
+      };
+      const { removeBackground } = await import('@imgly/background-removal');
+      const transparentBlob = await removeBackground(blob, bgConfig);
+      
+      const img = new Image();
+      const objUrl = URL.createObjectURL(transparentBlob);
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = objUrl;
+      });
+      
+      const flatCanvas = document.createElement('canvas');
+      flatCanvas.width = img.width;
+      flatCanvas.height = img.height;
+      const flatCtx = flatCanvas.getContext('2d');
+      if (flatCtx) {
+        flatCtx.fillStyle = bgColor;
+        flatCtx.fillRect(0, 0, flatCanvas.width, flatCanvas.height);
+        flatCtx.drawImage(img, 0, 0);
+      }
+      URL.revokeObjectURL(objUrl);
+      
+      const flatBlob = await new Promise<Blob>((resolve, reject) => {
+        flatCanvas.toBlob((b) => b ? resolve(b) : reject(new Error('Failed to flatten blob')), 'image/jpeg', 0.85);
+      });
+      
+      const buffer = await flatBlob.arrayBuffer();
+      const base64 = btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+      return `data:image/jpeg;base64,${base64}`;
+    } catch (err) {
+      console.error("Background removal failed:", err);
+    }
   }
 
   return mergedCanvas.toDataURL('image/jpeg', 0.85);

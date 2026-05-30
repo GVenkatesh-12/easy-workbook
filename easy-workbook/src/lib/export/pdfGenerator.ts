@@ -19,6 +19,17 @@ function hexToRgb(hex: string) {
 }
 
 /**
+ * Embed either JPEG or PNG bytes into the PDF document based on magic bytes.
+ */
+async function embedImageBytes(pdfDoc: PDFDocument, bytes: Uint8Array) {
+  // PNG magic bytes: 89 50 4E 47
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return await pdfDoc.embedPng(bytes);
+  }
+  return await pdfDoc.embedJpg(bytes);
+}
+
+/**
  * Draw note-style pattern on a PDF page.
  */
 function drawNotePattern(
@@ -103,9 +114,10 @@ export async function generatePdf(
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const theme = getTheme(settings.theme);
 
-  const bgColor = settings.customPageColor && settings.customPageColor.startsWith('#')
-    ? hexToRgb(settings.customPageColor)
-    : hexToRgb(theme.background);
+  const pageBgHex = settings.customPageColor && settings.customPageColor.startsWith('#')
+    ? settings.customPageColor
+    : theme.background;
+  const bgColor = hexToRgb(pageBgHex);
   const headerColor = hexToRgb(theme.headerText);
   const borderColor = hexToRgb(theme.border);
   const accentColor = hexToRgb(theme.accent);
@@ -178,25 +190,28 @@ export async function generatePdf(
     const totalWeight = pageQuestions.reduce((sum, q) => sum + (q.spaceWeight ?? 1), 0);
     const availableHeight = contentHeight - (pageQuestions.length - 1) * spacing;
 
-    // Pre-extract all images for this page concurrently
-    const preExtractedImages = await Promise.all(
-      pageQuestions.map(async (question) => {
-        let qBytes: Uint8Array | null = null;
-        let aBytes: Uint8Array | null = null;
+    // Pre-extract all images for this page sequentially
+    // Running AI models concurrently crashes the browser due to massive memory usage.
+    const preExtractedImages = [];
+    for (const question of pageQuestions) {
+      // Yield to the main thread so the browser can update the UI and progress bar
+      await new Promise(r => setTimeout(r, 50));
+
+      let qBytes: Uint8Array | null = null;
+      let aBytes: Uint8Array | null = null;
+      try {
+        qBytes = await extractMergedCrops(question.questionCrops, 3, settings.invertCropColors, settings.removeBackground, pageBgHex);
+      } catch {}
+      if (
+        (settings.exportType === "answer-key" || settings.exportType === "combined") &&
+        question.answerCrops && question.answerCrops.length > 0
+      ) {
         try {
-          qBytes = await extractMergedCrops(question.questionCrops, 3, settings.invertCropColors);
+          aBytes = await extractMergedCrops(question.answerCrops, 3, settings.invertCropColors, settings.removeBackground, pageBgHex);
         } catch {}
-        if (
-          (settings.exportType === "answer-key" || settings.exportType === "combined") &&
-          question.answerCrops && question.answerCrops.length > 0
-        ) {
-          try {
-            aBytes = await extractMergedCrops(question.answerCrops, 3, settings.invertCropColors);
-          } catch {}
-        }
-        return { qBytes, aBytes };
-      })
-    );
+      }
+      preExtractedImages.push({ qBytes, aBytes });
+    }
 
     let currentTop = contentTop;
 
@@ -227,8 +242,8 @@ export async function generatePdf(
         continue;
       }
 
-      const jpgImage = await pdfDoc.embedJpg(extracted.qBytes);
-      const imgAspect = jpgImage.width / jpgImage.height;
+      const embeddedQImage = await embedImageBytes(pdfDoc, extracted.qBytes);
+      const imgAspect = embeddedQImage.width / embeddedQImage.height;
 
       // Apply the user's scale factor so questions have a uniform shape relative to the page
       // Subtract 8 to account for the border padding
@@ -268,7 +283,7 @@ export async function generatePdf(
       });
 
       // Draw question image
-      page.drawImage(jpgImage, {
+      page.drawImage(embeddedQImage, {
         x: startX,
         y: blockTop - imgHeight - 4,
         width: imgWidth,
@@ -298,7 +313,7 @@ export async function generatePdf(
         question.answerCrops && question.answerCrops.length > 0
       ) {
         if (extracted.aBytes) {
-          const ansImg = await pdfDoc.embedJpg(extracted.aBytes);
+          const ansImg = await embedImageBytes(pdfDoc, extracted.aBytes);
           const ansAspect = ansImg.width / ansImg.height;
           
           // Apply the user's scale factor for answers
