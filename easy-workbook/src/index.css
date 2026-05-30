@@ -43,6 +43,20 @@
     overscroll-behavior: none;
   }
 
+  html.light {
+    --color-surface-50: #0f0f14;
+    --color-surface-100: #18181b;
+    --color-surface-200: #27272a;
+    --color-surface-300: #3f3f46;
+    --color-surface-400: #52525b;
+    --color-surface-500: #71717a;
+    --color-surface-600: #a1a1aa;
+    --color-surface-700: #d4d4d8;
+    --color-surface-800: #e4e4e7;
+    --color-surface-900: #f4f4f5;
+    --color-surface-950: #fafafa;
+  }
+
   body {
     height: 100%;
     overflow: hidden;
@@ -60,15 +74,7 @@
   }
 }
 
-
-
 @layer utilities {
-  .light body,
-  body.light {
-      background: var(--color-surface-50);
-      color: var(--color-surface-800);
-  }
-
   ::-webkit-scrollbar {
       width: 10px;
       height: 10px;
@@ -145,10 +151,8 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .glass-light {
+  .light .glass {
       background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(0, 0, 0, 0.08);
   }
 
