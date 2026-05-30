@@ -141,7 +141,7 @@ export function WelcomeScreen() {
         </div>
 
         {/* Visitor Counter */}
-        <div className="mt-12 flex justify-center pb-4">
+        <div className="mt-12 flex justify-center pb-4 pointer-events-none">
           <div id="sfcflh1mmxzjyc7267jdbbguybcuz9cfh1d"></div>
           <noscript>
             <a href="https://www.freecounterstat.com" title="web counter">
