@@ -99,7 +99,6 @@ export function PdfTimeline() {
             const pos = (page / Math.max(1, totalPages - 1)) * 100;
             const isHovered = hoveredPage === page;
             const isActive = currentPage === page;
-            const alignClass = pos < 15 ? 'left-0' : pos > 85 ? 'right-0' : 'left-1/2 -translate-x-1/2';
 
             return (
               <div
@@ -123,21 +122,27 @@ export function PdfTimeline() {
                 <AnimatePresence>
                   {isHovered && !isDragging && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                      initial={{ opacity: 0, y: -10, x: `-${pos}%`, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, x: `-${pos}%`, scale: 1 }}
+                      exit={{ opacity: 0, y: -5, x: `-${pos}%`, scale: 0.95 }}
                       transition={{ duration: 0.15 }}
-                      className={`absolute bottom-full mb-2 z-50 pointer-events-none ${alignClass}`}
+                      className="absolute top-full mt-2 z-50 pointer-events-none"
+                      style={{ left: 0 }}
                     >
-                      <div className="bg-surface-800 border border-surface-700 shadow-xl rounded-lg p-2 min-w-[120px]">
+                      <div className="bg-surface-800 border border-surface-700 shadow-xl rounded-lg p-2">
                         <div className="text-[10px] text-surface-400 font-semibold mb-1.5 flex justify-between items-center">
                           <span>Page {page + 1}</span>
                           <span className="bg-surface-700 px-1.5 py-0.5 rounded text-surface-200">
                             {pageQs.length} Q{pageQs.length !== 1 && 's'}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {pageQs.slice(0, 4).map((q) => (
+                        <div className={`grid gap-1.5 ${
+                          pageQs.length === 1 ? 'grid-cols-1 w-[140px]' :
+                          pageQs.length <= 4 ? 'grid-cols-2 w-[180px]' :
+                          pageQs.length <= 9 ? 'grid-cols-3 w-[240px]' :
+                          'grid-cols-4 w-[280px]'
+                        }`}>
+                          {pageQs.slice(0, pageQs.length === 1 ? 1 : pageQs.length <= 4 ? 4 : pageQs.length <= 9 ? 9 : 16).map((q) => (
                             <div key={q.id} className="w-full aspect-[4/3] rounded bg-surface-900 overflow-hidden border border-surface-700/50 relative">
                               {q.thumbnail ? (
                                 <img src={q.thumbnail} alt="" className="w-full h-full object-cover opacity-80" />
@@ -148,14 +153,14 @@ export function PdfTimeline() {
                                   </svg>
                                 </div>
                               )}
-                              <div className="absolute top-0.5 left-0.5 bg-black/60 text-[8px] font-bold px-1 rounded text-white backdrop-blur-sm">
+                              <div className="absolute top-0.5 left-0.5 bg-black/60 text-[8px] font-bold px-1 rounded text-white backdrop-blur-sm shadow-sm border border-white/10">
                                 {q.label}
                               </div>
                             </div>
                           ))}
-                          {pageQs.length > 4 && (
-                            <div className="col-span-2 text-center text-[9px] text-surface-500 font-medium pt-0.5">
-                              + {pageQs.length - 4} more
+                          {pageQs.length > 16 && (
+                            <div className="col-span-4 text-center text-[9px] text-surface-500 font-medium pt-1 border-t border-surface-700/50 mt-1">
+                              + {pageQs.length - 16} more
                             </div>
                           )}
                         </div>
