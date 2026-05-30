@@ -29,7 +29,7 @@ export interface Question {
 }
 
 /** Built-in theme names */
-export type ThemeName = 'minimal' | 'blueprint' | 'dark-academia' | 'pastel' | 'exam-style';
+export type ThemeName = 'minimal' | 'blueprint' | 'dark-academia' | 'pastel' | 'exam-style' | 'monochrome' | 'ocean' | 'forest' | 'sunset' | 'terminal';
 
 /** Export type variants */
 export type ExportType = 'practice' | 'answer-key' | 'combined';
