@@ -41,12 +41,12 @@ export function WelcomeScreen() {
   }, [handleFileDrop]);
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:flex sm:items-center sm:justify-center sm:p-8">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col sm:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="mx-auto w-full max-w-xl"
+        className="m-auto w-full max-w-xl py-8"
       >
         {/* Logo / Brand */}
         <div className="mb-8 text-center sm:mb-10">
