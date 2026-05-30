@@ -12,11 +12,13 @@ import { getNoteStyleSvg } from '@/lib/export/noteStyleRenderer';
 import { ExportPreview } from './ExportPreview';
 import type { NoteStyle, ExportType, ThemeName } from '@/types';
 
-const NOTE_STYLES: { value: NoteStyle; label: string; icon: string }[] = [
-  { value: 'blank', label: 'Blank', icon: '⬜' },
-  { value: 'lined', label: 'Lined', icon: '📝' },
-  { value: 'dotted', label: 'Dotted', icon: '⚬' },
-  { value: 'grid', label: 'Grid', icon: '▦' },
+import { Square, AlignJustify, Circle, Grid3x3, Settings, Palette, CheckCircle, FileText, Globe, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+
+const NOTE_STYLES: { value: NoteStyle; label: string; icon: React.ReactNode }[] = [
+  { value: 'blank', label: 'Blank', icon: <Square className="w-6 h-6 mx-auto" strokeWidth={1.5} /> },
+  { value: 'lined', label: 'Lined', icon: <AlignJustify className="w-6 h-6 mx-auto" strokeWidth={1.5} /> },
+  { value: 'dotted', label: 'Dotted', icon: <Circle className="w-6 h-6 mx-auto" strokeWidth={1.5} /> },
+  { value: 'grid', label: 'Grid', icon: <Grid3x3 className="w-6 h-6 mx-auto" strokeWidth={1.5} /> },
 ];
 
 const EXPORT_TYPES: { value: ExportType; label: string; desc: string }[] = [
@@ -96,9 +98,9 @@ export function ExportDialog() {
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  {tab === 'general' && '⚙️ General'}
-                  {tab === 'appearance' && '🎨 Appearance'}
-                  {tab === 'answers' && '✅ Answers'}
+                  {tab === 'general' && <><Settings className="w-4 h-4 shrink-0" /> General</>}
+                  {tab === 'appearance' && <><Palette className="w-4 h-4 shrink-0" /> Appearance</>}
+                  {tab === 'answers' && <><CheckCircle className="w-4 h-4 shrink-0" /> Answers</>}
                 </button>
               ))}
             </div>
@@ -126,7 +128,7 @@ export function ExportDialog() {
                             : 'bg-surface-900 text-surface-400 border-2 border-surface-700 hover:border-surface-600'
                           }`}
                       >
-                        {fmt === 'pdf' ? '📄 PDF Document' : '🌐 HTML Practice'}
+                        {fmt === 'pdf' ? <div className="flex items-center justify-center gap-2"><FileText className="w-4 h-4 shrink-0" /> PDF Document</div> : <div className="flex items-center justify-center gap-2"><Globe className="w-4 h-4 shrink-0" /> HTML Practice</div>}
                       </button>
                     ))}
                   </div>
@@ -331,7 +333,9 @@ export function ExportDialog() {
                             style={{ backgroundImage: bgImage }}
                           />
                           <div className="relative">
-                            <div className="text-xl mb-1.5">{style.icon}</div>
+                            <div className={`mb-1.5 flex justify-center ${store.noteStyle === style.value ? 'text-brand-400' : 'text-surface-400'}`}>
+                              {style.icon}
+                            </div>
                             <div className={`text-xs font-bold ${store.noteStyle === style.value ? 'text-brand-400' : 'text-surface-300'}`}>{style.label}</div>
                           </div>
                         </button>
@@ -422,9 +426,9 @@ export function ExportDialog() {
                                 : 'bg-surface-900 text-surface-400 border-2 border-surface-700 hover:border-surface-600'
                               }`}
                           >
-                            {pos === 'left' && '⬅️'}
-                            {pos === 'center' && '↔️'}
-                            {pos === 'right' && '➡️'}
+                            {pos === 'left' && <AlignLeft className="w-4 h-4 shrink-0" />}
+                            {pos === 'center' && <AlignCenter className="w-4 h-4 shrink-0" />}
+                            {pos === 'right' && <AlignRight className="w-4 h-4 shrink-0" />}
                             {pos}
                           </button>
                         ))}

@@ -4,6 +4,7 @@ import { useExportStore } from '@/store/exportStore';
 import type { Question, ExportType } from '@/types';
 import { getNoteStyleSvg } from '@/lib/export/noteStyleRenderer';
 import { getTheme } from '@/lib/export/themes';
+import { FileText } from 'lucide-react';
 
 export function ExportPreview() {
   const questions = useQuestionStore((s) => s.questions);
@@ -42,7 +43,7 @@ export function ExportPreview() {
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-surface-950 flex flex-col gap-6 items-center">
         {pages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <span className="text-4xl mb-3">📄</span>
+            <FileText className="w-12 h-12 mb-3 text-surface-600" />
             <p className="text-sm font-medium text-surface-400">No questions selected</p>
           </div>
         ) : (

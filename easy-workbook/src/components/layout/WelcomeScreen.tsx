@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { usePdfLoader } from '@/hooks/usePdfLoader';
+import { FileText, Scissors, BookOpen } from 'lucide-react';
 
 /**
  * Welcome screen shown when no PDF is loaded.
@@ -107,9 +108,9 @@ export function WelcomeScreen() {
         {/* Quick tips */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
           {[
-            { icon: '📄', label: 'Open PDF', desc: 'Load any workbook' },
-            { icon: '✂️', label: 'Select Questions', desc: 'Crop & organize' },
-            { icon: '📝', label: 'Generate Notebook', desc: 'Export practice PDF' },
+            { icon: <FileText className="w-6 h-6 text-brand-400" strokeWidth={1.5} />, label: 'Open PDF', desc: 'Load any workbook' },
+            { icon: <Scissors className="w-6 h-6 text-brand-400" strokeWidth={1.5} />, label: 'Select Questions', desc: 'Crop & organize' },
+            { icon: <BookOpen className="w-6 h-6 text-brand-400" strokeWidth={1.5} />, label: 'Generate Notebook', desc: 'Export practice PDF' },
           ].map((tip) => (
             <motion.div
               key={tip.label}
@@ -118,7 +119,7 @@ export function WelcomeScreen() {
               transition={{ delay: 0.3 }}
               className="text-center p-4 rounded-xl bg-surface-900/50 border border-surface-800"
             >
-              <div className="text-2xl mb-2">{tip.icon}</div>
+              <div className="mb-2 flex justify-center">{tip.icon}</div>
               <div className="text-sm font-medium text-surface-200">{tip.label}</div>
               <div className="text-xs text-surface-500 mt-1">{tip.desc}</div>
             </motion.div>

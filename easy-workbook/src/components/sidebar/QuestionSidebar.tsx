@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DndContext,
@@ -195,7 +196,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
         </button>
 
         {/* Thumbnail */}
-        <div className="w-16 h-12 rounded-md bg-surface-700 overflow-hidden shrink-0 border border-surface-600/50 shadow-inner">
+        <div className="w-16 h-12 rounded-md bg-surface-700 overflow-hidden shrink-0 border border-surface-600/50 shadow-inner flex items-center justify-center text-surface-500">
           {question.thumbnail ? (
             <img
               src={question.thumbnail}
@@ -203,9 +204,7 @@ function SortableQuestionCard({ question }: { question: Question }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-surface-500 text-xs">
-              📄
-            </div>
+            <FileText className="w-5 h-5 opacity-50" />
           )}
         </div>
 
