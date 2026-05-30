@@ -14,7 +14,7 @@ interface VirtualScrollResult {
   visibleRange: { start: number; end: number };
   pageInfos: PageInfo[];
   totalHeight: number;
-  scrollToPage: (pageIndex: number) => void;
+  scrollToPage: (pageIndex: number, behavior?: ScrollBehavior) => void;
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   currentPage: number;
@@ -98,10 +98,10 @@ export function useVirtualScroll(options: VirtualScrollOptions): VirtualScrollRe
     setScrollTop(e.currentTarget.scrollTop);
   }, []);
 
-  const scrollToPage = useCallback((pageIndex: number) => {
+  const scrollToPage = useCallback((pageIndex: number, behavior: ScrollBehavior = 'auto') => {
     if (pageIndex >= 0 && pageIndex < pageInfos.length && scrollRef.current) {
       const info = pageInfos[pageIndex];
-      scrollRef.current.scrollTo({ top: info.top - gap, behavior: 'smooth' });
+      scrollRef.current.scrollTo({ top: info.top - gap, behavior });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageInfos, gap]);

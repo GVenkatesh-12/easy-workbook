@@ -17,6 +17,7 @@ export function PdfViewer() {
   const zoom = usePdfStore((s) => s.zoom);
   const totalPages = usePdfStore((s) => s.totalPages);
   const setCurrentPage = usePdfStore((s) => s.setCurrentPage);
+  const jumpTarget = usePdfStore((s) => s.jumpTarget);
   const pageDimensions = usePdfStore((s) => s.pageDimensions);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -52,6 +53,7 @@ export function PdfViewer() {
     onScroll,
     scrollRef,
     currentPage,
+    scrollToPage,
   } = useVirtualScroll({
     totalPages,
     getPageDimensions: (i) => pageDimensions.get(i),
@@ -68,10 +70,25 @@ export function PdfViewer() {
     }
   }, [scrollRef]);
 
-  // Sync current page to store
+  const lastSyncPage = useRef(currentPage);
+
+  // Sync current page to store when scrolling manually
   useEffect(() => {
-    setCurrentPage(currentPage);
+    if (currentPage !== lastSyncPage.current) {
+      lastSyncPage.current = currentPage;
+      setCurrentPage(currentPage);
+    }
   }, [currentPage, setCurrentPage]);
+
+  const lastProcessedJumpId = useRef<number | null>(null);
+
+  // Jump to page when external request is made
+  useEffect(() => {
+    if (jumpTarget && jumpTarget.id !== lastProcessedJumpId.current) {
+      lastProcessedJumpId.current = jumpTarget.id;
+      scrollToPage(jumpTarget.page);
+    }
+  }, [jumpTarget, scrollToPage]);
 
   return (
     <div

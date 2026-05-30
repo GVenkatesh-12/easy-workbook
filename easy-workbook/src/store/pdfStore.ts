@@ -18,11 +18,14 @@ interface PdfState {
   error: string | null;
   /** Page dimensions cache: pageIndex → {width, height} at scale=1 */
   pageDimensions: Map<number, { width: number; height: number }>;
+  /** External jump request target */
+  jumpTarget: { page: number; id: number } | null;
 
   // Actions
   setPdfFile: (file: File) => void;
   setPdfDocument: (doc: PDFDocumentProxy) => void;
   setCurrentPage: (page: number) => void;
+  jumpToPage: (page: number) => void;
   setZoom: (zoom: number) => void;
   zoomIn: () => void;
   zoomOut: () => void;
@@ -46,6 +49,7 @@ export const usePdfStore = create<PdfState>((set) => ({
   isLoading: false,
   error: null,
   pageDimensions: new Map(),
+  jumpTarget: null,
 
   setPdfFile: (file) => set({ pdfFile: file, error: null }),
   
@@ -60,6 +64,14 @@ export const usePdfStore = create<PdfState>((set) => ({
   setCurrentPage: (page) => set((state) => ({
     currentPage: Math.max(0, Math.min(page, state.totalPages - 1)),
   })),
+
+  jumpToPage: (page) => set((state) => {
+    const validPage = Math.max(0, Math.min(page, state.totalPages - 1));
+    return {
+      currentPage: validPage,
+      jumpTarget: { page: validPage, id: Date.now() }
+    };
+  }),
 
   setZoom: (zoom) => set({ zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom)) }),
   
@@ -93,6 +105,7 @@ export const usePdfStore = create<PdfState>((set) => ({
       isLoading: false,
       error: null,
       pageDimensions: new Map(),
+      jumpTarget: null,
     };
   }),
 }));

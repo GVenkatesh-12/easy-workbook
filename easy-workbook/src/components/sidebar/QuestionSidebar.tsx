@@ -20,6 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useQuestionStore } from '@/store/questionStore';
 import { useUiStore } from '@/store/uiStore';
 import type { Question } from '@/types';
+import { PdfTimeline } from './PdfTimeline';
 
 /**
  * Sidebar containing all selected questions with drag-to-reorder.
@@ -72,6 +73,9 @@ export function QuestionSidebar() {
               Drag to reorder • Click to navigate
             </p>
           </div>
+
+          {/* Timeline slider */}
+          <PdfTimeline />
 
           {/* Question list */}
           <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4">
