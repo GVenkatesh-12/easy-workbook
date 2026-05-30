@@ -14,8 +14,11 @@ interface UiState {
   modalOpen: string | null;
   /** Toast notification queue */
   toasts: Array<{ id: string; message: string; type: 'success' | 'error' | 'info' }>;
+  /** Whether the product tour is running */
+  runTour: boolean;
 
   // Actions
+  setRunTour: (run: boolean) => void;
   setMode: (mode: InteractionMode) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -36,7 +39,9 @@ export const useUiStore = create<UiState>((set) => ({
   activePanel: 'questions',
   modalOpen: null,
   toasts: [],
+  runTour: false,
 
+  setRunTour: (run) => set({ runTour: run }),
   setMode: (mode) => set({ mode }),
   
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),

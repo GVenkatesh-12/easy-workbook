@@ -6,6 +6,7 @@ import { PdfViewer } from '@/components/pdf/PdfViewer';
 import { QuestionSidebar } from '@/components/sidebar/QuestionSidebar';
 import { ExportDialog } from '@/components/export/ExportDialog';
 import { ToastContainer } from '@/components/ui/Toast';
+import { ProductTour } from '@/components/tour/ProductTour';
 
 /**
  * Main application shell — orchestrates the layout.
@@ -73,6 +74,9 @@ export function AppShell() {
 
       {/* Toasts */}
       <ToastContainer />
+
+      {/* Product Tour */}
+      <ProductTour />
     </div>
   );
 }

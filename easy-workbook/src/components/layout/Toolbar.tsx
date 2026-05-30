@@ -3,6 +3,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useQuestionStore } from '@/store/questionStore';
 import { usePdfLoader } from '@/hooks/usePdfLoader';
 import { IconButton } from '@/components/ui/IconButton';
+import { HelpCircle } from 'lucide-react';
 
 /**
  * Top toolbar with mode controls, zoom, and actions.
@@ -23,6 +24,7 @@ export function Toolbar() {
   const darkMode = useUiStore((s) => s.darkMode);
   const toggleDarkMode = useUiStore((s) => s.toggleDarkMode);
   const openModal = useUiStore((s) => s.openModal);
+  const setRunTour = useUiStore((s) => s.setRunTour);
 
   const questionCount = useQuestionStore((s) => s.questions.length);
   const { closePdf } = usePdfLoader();
@@ -72,6 +74,7 @@ export function Toolbar() {
               active={mode === 'select'}
               onClick={() => setMode('select')}
               tooltip="Select questions (draw crop region)"
+              className="tour-select-mode"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
@@ -115,7 +118,7 @@ export function Toolbar() {
               size="sm"
               onClick={() => openModal('export')}
               tooltip="Export PDF"
-              className={`relative transition-all duration-500 ${questionCount > 0 ? 'ring-1 ring-brand-500 shadow-[0_0_15px_rgba(139,92,246,0.4)] bg-brand-500/10 text-brand-400' : ''}`}
+              className={`tour-export-btn relative transition-all duration-500 ${questionCount > 0 ? 'ring-1 ring-brand-500 shadow-[0_0_15px_rgba(139,92,246,0.4)] bg-brand-500/10 text-brand-400' : ''}`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -133,6 +136,7 @@ export function Toolbar() {
               active={sidebarOpen}
               onClick={toggleSidebar}
               tooltip="Toggle sidebar"
+              className="tour-sidebar-toggle"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
@@ -162,6 +166,11 @@ export function Toolbar() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
           )}
+        </IconButton>
+
+        {/* Help Tour Toggle */}
+        <IconButton size="sm" onClick={() => setRunTour(true)} tooltip="How to use">
+          <HelpCircle className="w-4 h-4" />
         </IconButton>
       </div>
     </header>
