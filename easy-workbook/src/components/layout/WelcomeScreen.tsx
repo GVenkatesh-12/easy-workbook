@@ -140,6 +140,18 @@ export function WelcomeScreen() {
           ))}
         </div>
 
+        <div className="mt-8 text-center">
+          <p className="text-sm text-surface-400 mb-2">Have feedback? Share it with us so we can make Easy Workbook better.</p>
+          <a
+            href="https://forms.gle/sPngQusWkj9mZ4TJ7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-full border border-brand-500 px-4 py-2 text-sm font-semibold text-brand-200 transition hover:bg-brand-500/20"
+          >
+            Submit feedback
+          </a>
+        </div>
+
         {/* Visitor Counter */}
         <div className="mt-12 flex justify-center pb-4 pointer-events-none">
           <div id="sfcflh1mmxzjyc7267jdbbguybcuz9cfh1d"></div>
