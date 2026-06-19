@@ -24,6 +24,33 @@ interface ExportState extends ExportSettings {
   setCustomPageColor: (color: string) => void;
   setInvertCropColors: (invert: boolean) => void;
   setRemoveBackground: (remove: boolean) => void;
+  
+  // Cover Page configuration
+  setIncludeCoverPage: (includeCoverPage: boolean) => void;
+  setCoverPageTitle: (coverPageTitle: string) => void;
+  setCoverPageSubtitle: (coverPageSubtitle: string) => void;
+  setCoverPageSubject: (coverPageSubject: string) => void;
+  setCoverPageAuthor: (coverPageAuthor: string) => void;
+  setCoverPageTheme: (coverPageTheme: ExportSettings['coverPageTheme']) => void;
+
+  // Watermark configuration
+  setWatermarkText: (watermarkText: string) => void;
+  setWatermarkOpacity: (watermarkOpacity: number) => void;
+  setWatermarkSize: (watermarkSize: number) => void;
+
+  // Header/Footer customization
+  setHeaderLeft: (headerLeft: string) => void;
+  setHeaderRight: (headerRight: ExportSettings['headerRight']) => void;
+  setHeaderRightCustom: (headerRightCustom: string) => void;
+  setFooterLeft: (footerLeft: string) => void;
+  setFooterRight: (footerRight: ExportSettings['footerRight']) => void;
+  setFooterRightCustom: (footerRightCustom: string) => void;
+  setShowHeaderLine: (showHeaderLine: boolean) => void;
+  setShowFooterLine: (showFooterLine: boolean) => void;
+
+  // Typography
+  setFontFamily: (fontFamily: ExportSettings['fontFamily']) => void;
+  
   resetDefaults: () => void;
   getSettings: () => ExportSettings;
 }
@@ -46,6 +73,32 @@ const DEFAULT_SETTINGS: ExportSettings = {
   customPageColor: '',
   invertCropColors: false,
   removeBackground: false,
+
+  // Cover Page configuration
+  includeCoverPage: false,
+  coverPageTitle: '',
+  coverPageSubtitle: '',
+  coverPageSubject: '',
+  coverPageAuthor: '',
+  coverPageTheme: 'minimal',
+
+  // Watermark configuration
+  watermarkText: '',
+  watermarkOpacity: 0.1,
+  watermarkSize: 50,
+
+  // Header/Footer customization
+  headerLeft: '',
+  headerRight: 'page',
+  headerRightCustom: '',
+  footerLeft: '',
+  footerRight: 'none',
+  footerRightCustom: '',
+  showHeaderLine: true,
+  showFooterLine: false,
+
+  // Typography
+  fontFamily: 'helvetica',
 };
 
 export const useExportStore = create<ExportState>((set, get) => ({
@@ -72,6 +125,32 @@ export const useExportStore = create<ExportState>((set, get) => ({
   setInvertCropColors: (invertCropColors) => set({ invertCropColors }),
   setRemoveBackground: (removeBackground) => set({ removeBackground }),
   setPreviewMode: (previewMode) => set({ previewMode }),
+
+  // Cover Page configuration
+  setIncludeCoverPage: (includeCoverPage) => set({ includeCoverPage }),
+  setCoverPageTitle: (coverPageTitle) => set({ coverPageTitle }),
+  setCoverPageSubtitle: (coverPageSubtitle) => set({ coverPageSubtitle }),
+  setCoverPageSubject: (coverPageSubject) => set({ coverPageSubject }),
+  setCoverPageAuthor: (coverPageAuthor) => set({ coverPageAuthor }),
+  setCoverPageTheme: (coverPageTheme) => set({ coverPageTheme }),
+
+  // Watermark configuration
+  setWatermarkText: (watermarkText) => set({ watermarkText }),
+  setWatermarkOpacity: (watermarkOpacity) => set({ watermarkOpacity }),
+  setWatermarkSize: (watermarkSize) => set({ watermarkSize }),
+
+  // Header/Footer customization
+  setHeaderLeft: (headerLeft) => set({ headerLeft }),
+  setHeaderRight: (headerRight) => set({ headerRight }),
+  setHeaderRightCustom: (headerRightCustom) => set({ headerRightCustom }),
+  setFooterLeft: (footerLeft) => set({ footerLeft }),
+  setFooterRight: (footerRight) => set({ footerRight }),
+  setFooterRightCustom: (footerRightCustom) => set({ footerRightCustom }),
+  setShowHeaderLine: (showHeaderLine) => set({ showHeaderLine }),
+  setShowFooterLine: (showFooterLine) => set({ showFooterLine }),
+
+  // Typography
+  setFontFamily: (fontFamily) => set({ fontFamily }),
   
   resetDefaults: () => set({ ...DEFAULT_SETTINGS }),
   
@@ -95,6 +174,32 @@ export const useExportStore = create<ExportState>((set, get) => ({
       customPageColor: state.customPageColor,
       invertCropColors: state.invertCropColors,
       removeBackground: state.removeBackground,
+
+      // Cover Page configuration
+      includeCoverPage: state.includeCoverPage,
+      coverPageTitle: state.coverPageTitle,
+      coverPageSubtitle: state.coverPageSubtitle,
+      coverPageSubject: state.coverPageSubject,
+      coverPageAuthor: state.coverPageAuthor,
+      coverPageTheme: state.coverPageTheme,
+
+      // Watermark configuration
+      watermarkText: state.watermarkText,
+      watermarkOpacity: state.watermarkOpacity,
+      watermarkSize: state.watermarkSize,
+
+      // Header/Footer customization
+      headerLeft: state.headerLeft,
+      headerRight: state.headerRight,
+      headerRightCustom: state.headerRightCustom,
+      footerLeft: state.footerLeft,
+      footerRight: state.footerRight,
+      footerRightCustom: state.footerRightCustom,
+      showHeaderLine: state.showHeaderLine,
+      showFooterLine: state.showFooterLine,
+
+      // Typography
+      fontFamily: state.fontFamily,
     };
   },
 }));

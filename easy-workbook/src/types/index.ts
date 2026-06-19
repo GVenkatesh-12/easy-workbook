@@ -53,6 +53,32 @@ export interface ExportSettings {
   customPageColor: string; // Hex color for custom background, or empty string to use theme
   invertCropColors: boolean; // Whether to invert colors of the cropped images
   removeBackground: boolean; // Whether to use AI to remove white background from crops
+
+  // Cover Page configuration
+  includeCoverPage: boolean;
+  coverPageTitle: string;
+  coverPageSubtitle: string;
+  coverPageSubject: string;
+  coverPageAuthor: string;
+  coverPageTheme: 'minimal' | 'modern' | 'classic' | 'geometric';
+
+  // Watermark configuration
+  watermarkText: string;
+  watermarkOpacity: number;
+  watermarkSize: number;
+
+  // Header/Footer customization
+  headerLeft: string;
+  headerRight: 'page' | 'date' | 'none' | 'custom';
+  headerRightCustom: string;
+  footerLeft: string;
+  footerRight: 'page' | 'date' | 'none' | 'custom';
+  footerRightCustom: string;
+  showHeaderLine: boolean;
+  showFooterLine: boolean;
+
+  // Typography
+  fontFamily: 'helvetica' | 'times' | 'courier';
 }
 
 /** Theme color palette */

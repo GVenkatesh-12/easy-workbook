@@ -45,11 +45,11 @@ export class PdfManager {
 
     const loadingTask = pdfjsLib.getDocument({
       data,
-      cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/cmaps/",
+      cMapUrl: "/cmaps/",
       cMapPacked: true,
       enableXfa: true,
-      standardFontDataUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/standard_fonts/",
-      wasmUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/wasm/",
+      standardFontDataUrl: "/standard_fonts/",
+      wasmUrl: "/wasm/",
     });
 
     this.document = await loadingTask.promise;
