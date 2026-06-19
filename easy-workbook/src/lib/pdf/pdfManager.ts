@@ -37,6 +37,7 @@ export class PdfManager {
   private renderTracker = new RenderTracker();
   private renderTasks = new Map<number, RenderTask>();
   private pageProxyCache = new Map<number, PDFPageProxy>();
+  private optionalContentConfigPromise: Promise<any> | null = null;
 
   async loadDocument(data: ArrayBuffer): Promise<PDFDocumentProxy> {
     // Clean up previous document
@@ -44,12 +45,32 @@ export class PdfManager {
 
     const loadingTask = pdfjsLib.getDocument({
       data,
-      cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.124/cmaps/",
+      cMapUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/cmaps/",
       cMapPacked: true,
       enableXfa: true,
+      standardFontDataUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/standard_fonts/",
+      wasmUrl: "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/wasm/",
     });
 
     this.document = await loadingTask.promise;
+
+    // Retrieve the default Optional Content Configuration and force all layers to be visible
+    this.optionalContentConfigPromise = this.document.getOptionalContentConfig()
+      .then((config) => {
+        try {
+          for (const [id] of config) {
+            config.setVisibility(id, true);
+          }
+        } catch (e) {
+          console.error("Failed to enable all optional content groups:", e);
+        }
+        return config;
+      })
+      .catch((err) => {
+        console.error("Error retrieving optional content configuration:", err);
+        return null;
+      });
+
     return this.document;
   }
 
@@ -135,6 +156,7 @@ export class PdfManager {
       canvas,
       canvasContext: ctx,
       viewport,
+      optionalContentConfigPromise: this.optionalContentConfigPromise || undefined,
     });
 
     this.renderTasks.set(pageIndex, renderTask);
@@ -174,7 +196,12 @@ export class PdfManager {
     const ctx = fullCanvas.getContext("2d");
     if (!ctx) throw new Error("Could not get canvas context");
 
-    await page.render({ canvas: fullCanvas, canvasContext: ctx, viewport }).promise;
+    await page.render({
+      canvas: fullCanvas,
+      canvasContext: ctx,
+      viewport,
+      optionalContentConfigPromise: this.optionalContentConfigPromise || undefined,
+    }).promise;
 
     // Now crop the region
     const cropCanvas = document.createElement("canvas");
@@ -232,6 +259,7 @@ export class PdfManager {
     this.pageProxyCache.clear();
     this.document?.destroy();
     this.document = null;
+    this.optionalContentConfigPromise = null;
   }
 
   get numPages(): number {
