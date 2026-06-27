@@ -26,6 +26,7 @@ export interface Question {
   createdAt: number;
   thumbnail?: string; // data URL for sidebar preview
   spaceWeight?: number; // relative weight for spacing on a page (default 1)
+  sourceDetectionId?: string; // auto-detect dot this question was selected from
 }
 
 /** Built-in theme names */

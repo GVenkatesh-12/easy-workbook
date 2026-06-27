@@ -4,7 +4,6 @@ import type Konva from 'konva';
 import { useUiStore } from '@/store/uiStore';
 import { useQuestionStore } from '@/store/questionStore';
 import { usePdfStore } from '@/store/pdfStore';
-import { useThumbnail } from '@/hooks/useThumbnail';
 import { useDetectionStore } from '@/store/detectionStore';
 import { DetectionDot } from '@/components/detection/DetectionDot';
 import type { DetectedQuestion } from '@/types';
@@ -56,21 +55,16 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const pdfFile = usePdfStore((s) => s.pdfFile);
   const addToast = useUiStore((s) => s.addToast);
   const detectionMode = useUiStore((s) => s.detectionMode);
-  const setDetectionMode = useUiStore((s) => s.setDetectionMode);
-  const { generateThumbnail } = useThumbnail();
 
   // Detection store state
   const detectedQuestions = useDetectionStore((s) => s.detectedQuestions);
-  const removeDetected = useDetectionStore((s) => s.removeDetected);
 
   // Selection state machine
   const [phase, setPhase] = useState<SelectionPhase>('idle');
   const [drawingRect, setDrawingRect] = useState<DrawingRect | null>(null);
   const [pendingRect, setPendingRect] = useState<DrawingRect | null>(null);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
-
-  // Tracks which detected question we are currently adjusting from Smart Dots
-  const [pendingDetectedId, setPendingDetectedId] = useState<string | null>(null);
+  const [pendingDetectionId, setPendingDetectionId] = useState<string | null>(null);
 
   // Konva refs for the adjustable rect + transformer
   const pendingRectRef = useRef<Konva.Rect>(null);
@@ -84,7 +78,18 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const isAutoDetectMode = mode === 'auto-detect';
   const isActive = isSelectionMode || isAnswerMode || isAutoDetectMode;
 
-  const pageDetections = detectedQuestions.filter((q) => q.pageIndex === pageIndex);
+  const selectedDetectionIds = new Set(
+    questions
+      .map((q) => q.sourceDetectionId)
+      .filter((id): id is string => Boolean(id))
+  );
+  if (pendingDetectionId) {
+    selectedDetectionIds.add(pendingDetectionId);
+  }
+
+  const pageDetections = detectedQuestions.filter(
+    (q) => q.pageIndex === pageIndex && !selectedDetectionIds.has(q.id)
+  );
 
   // Questions that have at least one part on this page
   const pageQuestions = questions.filter((q) => 
@@ -223,7 +228,7 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
     
     setPendingRect(rect);
     setPhase('adjusting');
-    setPendingDetectedId(q.id);
+    setPendingDetectionId(q.id);
   }, [width, height]);
 
   // ─── Confirm / Cancel ───
@@ -285,40 +290,27 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
         pageNumber: allCrops[0].pageNumber ?? pageIndex, // Main page is the first part's page
         questionCrops: allCrops,
         thumbnail,
+        sourceDetectionId: pendingDetectionId ?? undefined,
       });
       // Set as active so answer-select can target it
       setActiveQuestion(newId);
       addToast(`Question selected`, 'success');
-
-      // Remove from detection overlay dots list
-      if (pendingDetectedId) {
-        removeDetected(pendingDetectedId);
-        
-        // Turn off detection mode if no more dots remain
-        const remaining = useDetectionStore.getState().detectedQuestions.filter(
-          (d) => d.id !== pendingDetectedId
-        );
-        if (remaining.length === 0) {
-          setDetectionMode('off');
-          setMode('view'); // go back to view mode
-        }
-      }
     }
 
     // Reset
     setPendingRect(null);
     setPhase('idle');
-    setPendingDetectedId(null);
+    setPendingDetectionId(null);
     clearPendingCrops();
     clearPendingAnswerCrops();
-  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrops, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail, pendingQuestionCrops, clearPendingCrops, pendingAnswerCrops, clearPendingAnswerCrops, pendingDetectedId, removeDetected, setDetectionMode]);
+  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrops, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, pendingQuestionCrops, clearPendingCrops, pendingAnswerCrops, clearPendingAnswerCrops, pendingDetectionId]);
 
   const handleCancel = useCallback(() => {
     setPendingRect(null);
     setDrawingRect(null);
     setPhase('idle');
     startPointRef.current = null;
-    setPendingDetectedId(null);
+    setPendingDetectionId(null);
     clearPendingCrops();
     clearPendingAnswerCrops();
     if (isAnswerMode) {

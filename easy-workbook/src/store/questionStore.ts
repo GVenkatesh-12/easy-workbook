@@ -16,6 +16,7 @@ interface QuestionState {
     questionCrops: CropRegion[];
     answerCrops?: CropRegion[];
     thumbnail?: string;
+    sourceDetectionId?: string;
   }) => string; // returns new question ID
   addPendingCrop: (crop: CropRegion) => void;
   clearPendingCrops: () => void;
@@ -65,6 +66,7 @@ export const useQuestionStore = create<QuestionState>((set, get) => ({
       createdAt: Date.now(),
       thumbnail: params.thumbnail,
       spaceWeight: 1, // Default weight
+      sourceDetectionId: params.sourceDetectionId,
     };
     set((state) => ({
       questions: reindexLabels([...state.questions, question]),
