@@ -3,6 +3,7 @@ import { pdfManager } from '@/lib/pdf/pdfManager';
 import { usePdfStore } from '@/store/pdfStore';
 import { useUiStore } from '@/store/uiStore';
 import { useQuestionStore } from '@/store/questionStore';
+import { useDetectionStore } from '@/store/detectionStore';
 
 /**
  * Hook to handle PDF file loading.
@@ -17,8 +18,17 @@ export function usePdfLoader() {
   } = usePdfStore();
   const addToast = useUiStore((s) => s.addToast);
 
+  const resetPdfSession = useCallback(() => {
+    useDetectionStore.getState().clearDetection();
+    useQuestionStore.getState().clearAll();
+    useUiStore.getState().setDetectionMode('off');
+    useUiStore.getState().setMode('view');
+  }, []);
+
   const loadPdf = useCallback(async (file: File) => {
     try {
+      usePdfStore.getState().closePdf();
+      resetPdfSession();
       setLoading(true);
       setPdfFile(file);
       
@@ -40,7 +50,7 @@ export function usePdfLoader() {
       setError(message);
       addToast(message, 'error');
     }
-  }, [setPdfFile, setPdfDocument, setLoading, setError, setPageDimensions, addToast]);
+  }, [setPdfFile, setPdfDocument, setLoading, setError, setPageDimensions, addToast, resetPdfSession]);
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -70,9 +80,9 @@ export function usePdfLoader() {
     }
     pdfManager.destroy();
     usePdfStore.getState().closePdf();
-    useQuestionStore.getState().clearAll();
+    resetPdfSession();
     addToast('PDF closed', 'info');
-  }, [addToast]);
+  }, [addToast, resetPdfSession]);
 
   return { loadPdf, handleFileDrop, handleFileSelect, closePdf };
 }
