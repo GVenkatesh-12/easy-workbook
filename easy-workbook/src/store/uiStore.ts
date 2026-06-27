@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { InteractionMode, ActivePanel } from '@/types';
+import type { InteractionMode, ActivePanel, DetectionMode } from '@/types';
 
 interface UiState {
   /** Current interaction mode */
@@ -16,6 +16,8 @@ interface UiState {
   toasts: Array<{ id: string; message: string; type: 'success' | 'error' | 'info' }>;
   /** Whether the product tour is running */
   runTour: boolean;
+  /** Detection mode variant */
+  detectionMode: DetectionMode;
 
   // Actions
   setRunTour: (run: boolean) => void;
@@ -28,6 +30,7 @@ interface UiState {
   closeModal: () => void;
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
+  setDetectionMode: (mode: DetectionMode) => void;
 }
 
 let toastCounter = 0;
@@ -40,6 +43,7 @@ export const useUiStore = create<UiState>((set) => ({
   modalOpen: null,
   toasts: [],
   runTour: false,
+  detectionMode: 'off',
 
   setRunTour: (run) => set({ runTour: run }),
   setMode: (mode) => set({ mode }),
@@ -70,4 +74,7 @@ export const useUiStore = create<UiState>((set) => ({
   removeToast: (id) => set((state) => ({
     toasts: state.toasts.filter((t) => t.id !== id),
   })),
+
+  setDetectionMode: (detectionMode) => set({ detectionMode }),
 }));
+

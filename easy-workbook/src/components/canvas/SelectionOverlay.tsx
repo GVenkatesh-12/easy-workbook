@@ -5,6 +5,9 @@ import { useUiStore } from '@/store/uiStore';
 import { useQuestionStore } from '@/store/questionStore';
 import { usePdfStore } from '@/store/pdfStore';
 import { useThumbnail } from '@/hooks/useThumbnail';
+import { useDetectionStore } from '@/store/detectionStore';
+import { DetectionDot } from '@/components/detection/DetectionDot';
+import type { DetectedQuestion } from '@/types';
 import {
   stageRectToNormalized,
   normalizedRectToStage,
@@ -52,13 +55,22 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
   const clearPendingAnswerCrops = useQuestionStore((s) => s.clearPendingAnswerCrops);
   const pdfFile = usePdfStore((s) => s.pdfFile);
   const addToast = useUiStore((s) => s.addToast);
+  const detectionMode = useUiStore((s) => s.detectionMode);
+  const setDetectionMode = useUiStore((s) => s.setDetectionMode);
   const { generateThumbnail } = useThumbnail();
+
+  // Detection store state
+  const detectedQuestions = useDetectionStore((s) => s.detectedQuestions);
+  const removeDetected = useDetectionStore((s) => s.removeDetected);
 
   // Selection state machine
   const [phase, setPhase] = useState<SelectionPhase>('idle');
   const [drawingRect, setDrawingRect] = useState<DrawingRect | null>(null);
   const [pendingRect, setPendingRect] = useState<DrawingRect | null>(null);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Tracks which detected question we are currently adjusting from Smart Dots
+  const [pendingDetectedId, setPendingDetectedId] = useState<string | null>(null);
 
   // Konva refs for the adjustable rect + transformer
   const pendingRectRef = useRef<Konva.Rect>(null);
@@ -69,7 +81,10 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
 
   const isSelectionMode = mode === 'select';
   const isAnswerMode = mode === 'answer-select';
-  const isActive = isSelectionMode || isAnswerMode;
+  const isAutoDetectMode = mode === 'auto-detect';
+  const isActive = isSelectionMode || isAnswerMode || isAutoDetectMode;
+
+  const pageDetections = detectedQuestions.filter((q) => q.pageIndex === pageIndex);
 
   // Questions that have at least one part on this page
   const pageQuestions = questions.filter((q) => 
@@ -201,6 +216,18 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
 
   // ─── Confirm / Cancel ───
 
+  const handleDotClick = useCallback((q: DetectedQuestion) => {
+    if (q.regions.length === 0) return;
+    const region = q.regions[0];
+    const rect = normalizedRectToStage(region, width, height);
+    
+    setPendingRect(rect);
+    setPhase('adjusting');
+    setPendingDetectedId(q.id);
+  }, [width, height]);
+
+  // ─── Confirm / Cancel ───
+
   const handleConfirm = useCallback(async () => {
     if (!pendingRect || !pdfFile) return;
 
@@ -262,20 +289,36 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
       // Set as active so answer-select can target it
       setActiveQuestion(newId);
       addToast(`Question selected`, 'success');
+
+      // Remove from detection overlay dots list
+      if (pendingDetectedId) {
+        removeDetected(pendingDetectedId);
+        
+        // Turn off detection mode if no more dots remain
+        const remaining = useDetectionStore.getState().detectedQuestions.filter(
+          (d) => d.id !== pendingDetectedId
+        );
+        if (remaining.length === 0) {
+          setDetectionMode('off');
+          setMode('view'); // go back to view mode
+        }
+      }
     }
 
     // Reset
     setPendingRect(null);
     setPhase('idle');
+    setPendingDetectedId(null);
     clearPendingCrops();
     clearPendingAnswerCrops();
-  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrops, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail, pendingQuestionCrops, clearPendingCrops, pendingAnswerCrops, clearPendingAnswerCrops]);
+  }, [pendingRect, pdfFile, width, height, isAnswerMode, answerForQuestionId, setAnswerCrops, addQuestion, setActiveQuestion, addToast, setMode, pageIndex, generateThumbnail, pendingQuestionCrops, clearPendingCrops, pendingAnswerCrops, clearPendingAnswerCrops, pendingDetectedId, removeDetected, setDetectionMode]);
 
   const handleCancel = useCallback(() => {
     setPendingRect(null);
     setDrawingRect(null);
     setPhase('idle');
     startPointRef.current = null;
+    setPendingDetectedId(null);
     clearPendingCrops();
     clearPendingAnswerCrops();
     if (isAnswerMode) {
@@ -557,6 +600,17 @@ export function SelectionOverlay({ pageIndex, width, height }: SelectionOverlayP
           )}
         </Layer>
       </Stage>
+
+      {/* ── Smart detection dots ── */}
+      {detectionMode === 'dots' && isAutoDetectMode && pageDetections.map((q) => (
+        <DetectionDot
+          key={q.id}
+          x={q.regions[0].x}
+          y={q.regions[0].y}
+          label={q.label}
+          onClick={() => handleDotClick(q)}
+        />
+      ))}
 
       {/* ── Floating Confirm/Cancel buttons (HTML overlay, not Konva) ── */}
       {phase === 'adjusting' && pendingRect && (

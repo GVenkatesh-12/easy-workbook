@@ -4,6 +4,16 @@ import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from "pdfjs-dist";
 // Configure worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
+/** Text item extracted from a PDF page with normalized coordinates */
+export interface TextItem {
+  text: string;
+  x: number;      // normalized 0-1
+  y: number;      // normalized 0-1
+  width: number;  // normalized 0-1
+  height: number; // normalized 0-1
+  fontSize: number;
+}
+
 /**
  * Track which pages have been rendered at which scale,
  * so we can skip redundant renders.
@@ -229,6 +239,70 @@ export class PdfManager {
     );
 
     return cropCanvas;
+  }
+
+  /**
+   * Extract text content from a page with normalized coordinates.
+   * Returns text items with positions in 0-1 normalized space.
+   */
+  async getTextContent(
+    pageIndex: number,
+  ): Promise<TextItem[]> {
+    if (!this.document) throw new Error("No PDF document loaded");
+
+    const page = await this.getPage(pageIndex);
+    const viewport = page.getViewport({ scale: 1 });
+    const content = await page.getTextContent();
+
+    return content.items
+      .filter((item): item is import("pdfjs-dist/types/src/display/api").TextItem =>
+        'str' in item && typeof item.str === 'string' && item.str.trim().length > 0
+      )
+      .map((item) => {
+        // item.transform is a 6-element matrix [scaleX, skewY, skewX, scaleY, translateX, translateY]
+        const tx = item.transform[4]; // X position in PDF units
+        const ty = item.transform[5]; // Y position in PDF units (bottom-up)
+        const fontSize = Math.abs(item.transform[0]);
+
+        // Convert from PDF coordinate system (bottom-left origin) to normalized (top-left origin)
+        return {
+          text: item.str,
+          x: tx / viewport.width,
+          y: 1 - (ty / viewport.height), // Flip Y axis
+          width: (item.width ?? 0) / viewport.width,
+          height: (item.height ?? fontSize) / viewport.height,
+          fontSize,
+        };
+      });
+  }
+
+  /**
+   * Render a page to a standalone canvas for OCR processing.
+   */
+  async renderPageToImage(
+    pageIndex: number,
+    scale = 2,
+  ): Promise<HTMLCanvasElement> {
+    if (!this.document) throw new Error("No PDF document loaded");
+
+    const page = await this.getPage(pageIndex);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not get canvas context");
+
+    await page.render({
+      canvas,
+      canvasContext: ctx,
+      viewport,
+      optionalContentConfigPromise: this.optionalContentConfigPromise || undefined,
+    }).promise;
+
+    return canvas;
   }
 
   cancelRender(pageIndex: number): void {

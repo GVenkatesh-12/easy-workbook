@@ -5,8 +5,10 @@ import { WelcomeScreen } from './WelcomeScreen';
 import { PdfViewer } from '@/components/pdf/PdfViewer';
 import { QuestionSidebar } from '@/components/sidebar/QuestionSidebar';
 import { ExportDialog } from '@/components/export/ExportDialog';
+import { DetectionPanel } from '@/components/detection/DetectionPanel';
 import { ToastContainer } from '@/components/ui/Toast';
 import { ProductTour } from '@/components/tour/ProductTour';
+import { useUnsavedWarning } from '@/hooks/useUnsavedWarning';
 
 /**
  * Main application shell — orchestrates the layout.
@@ -15,6 +17,8 @@ export function AppShell() {
   const pdfDocument = usePdfStore((s) => s.pdfDocument);
   const isLoading = usePdfStore((s) => s.isLoading);
   const mode = useUiStore((s) => s.mode);
+
+  useUnsavedWarning();
 
   const hasPdf = pdfDocument !== null;
 
@@ -40,7 +44,7 @@ export function AppShell() {
         ) : (
           <>
             {/* Mode indicator banner */}
-            {(mode === 'select' || mode === 'answer-select') && (
+            {(mode === 'select' || mode === 'answer-select' || mode === 'auto-detect') && (
               <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-center py-3 pointer-events-none">
                 <div className={`
                   glass rounded-full px-5 py-2.5 flex items-center gap-3 text-xs font-semibold pointer-events-auto shadow-lg
@@ -54,6 +58,8 @@ export function AppShell() {
                   }`} />
                   {mode === 'answer-select'
                     ? 'Answer Mode — Draw the answer/explanation region'
+                    : mode === 'auto-detect'
+                    ? 'Smart Detect Mode — Click dots to select detected questions'
                     : 'Selection Mode — Draw to crop a question region'
                   }
                 </div>
@@ -71,6 +77,7 @@ export function AppShell() {
 
       {/* Modals */}
       <ExportDialog />
+      <DetectionPanel />
 
       {/* Toasts */}
       <ToastContainer />

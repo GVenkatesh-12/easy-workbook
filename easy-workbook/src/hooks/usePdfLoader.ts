@@ -61,6 +61,13 @@ export function usePdfLoader() {
   }, [loadPdf]);
 
   const closePdf = useCallback(() => {
+    const questions = useQuestionStore.getState().questions;
+    if (questions.length > 0) {
+      const confirmClose = window.confirm(
+        `You have ${questions.length} cropped question(s). Closing the PDF will discard all selections. Are you sure you want to continue?`
+      );
+      if (!confirmClose) return;
+    }
     pdfManager.destroy();
     usePdfStore.getState().closePdf();
     useQuestionStore.getState().clearAll();

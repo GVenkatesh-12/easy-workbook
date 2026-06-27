@@ -95,8 +95,27 @@ export interface ThemeColors {
   questionBg: string;
 }
 
+/** A detected question from auto-detection */
+export interface DetectedQuestion {
+  id: string;
+  label: string;
+  regions: CropRegion[];
+  confidence: number;
+  pageIndex: number;
+}
+
+/** Detection progress info */
+export interface DetectionProgress {
+  current: number;
+  total: number;
+  phase: string;
+}
+
 /** App interaction mode */
-export type InteractionMode = 'view' | 'select' | 'answer-select';
+export type InteractionMode = 'view' | 'select' | 'answer-select' | 'auto-detect';
+
+/** Detection mode variant */
+export type DetectionMode = 'off' | 'dots' | 'auto-crop';
 
 /** Selection state machine */
 export type SelectionState = 'idle' | 'drawing' | 'adjusting' | 'confirmed';

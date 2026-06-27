@@ -3,7 +3,7 @@ import { useUiStore } from '@/store/uiStore';
 import { useQuestionStore } from '@/store/questionStore';
 import { usePdfLoader } from '@/hooks/usePdfLoader';
 import { IconButton } from '@/components/ui/IconButton';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Sparkles } from 'lucide-react';
 
 /**
  * Top toolbar with mode controls, zoom, and actions.
@@ -79,6 +79,18 @@ export function Toolbar() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
               </svg>
+            </IconButton>
+            <IconButton
+              size="sm"
+              active={mode === 'auto-detect'}
+              onClick={() => openModal('auto-detect')}
+              tooltip="Auto Detect Questions (Beta)"
+              className="relative tour-auto-detect-mode"
+            >
+              <Sparkles className="w-4 h-4 text-brand-400" />
+              <span className="absolute -top-1 -right-1 text-[7px] font-bold text-white bg-brand-500 rounded-full px-1 py-0.2 scale-75 uppercase">
+                Beta
+              </span>
             </IconButton>
           </div>
 
